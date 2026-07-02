@@ -1,12 +1,14 @@
 export const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://PASTE_YOUR_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "PASTE_YOUR_PROJECT",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID"
+  apiKey: "AIzaSyB0uolfQ19NSoiaIJVlzP_BFnqs-p4hKGQ",
+  authDomain: "calle-c546f.firebaseapp.com",
+  databaseURL: "https://calle-c546f-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "calle-c546f",
+  storageBucket: "calle-c546f.firebasestorage.app",
+  messagingSenderId: "301609417876",
+  appId: "1:301609417876:web:808e497a99281dabcb0881",
+  measurementId: "G-PLZG4J4ERV"
 };
 
 export const SESSION_ID = "wedding-live";
+
 export const YOUTUBE_LIVE_URL = "PASTE_YOUTUBE_LIVE_URL_HERE";
