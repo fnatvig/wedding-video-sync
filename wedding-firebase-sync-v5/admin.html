@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin – Bröllopsfilm</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Admin</h1>
+    <p class="lead">När gästerna är redo: tryck start. Alla får en gemensam starttid några sekunder framåt.</p>
+
+    <section class="stats">
+      <div><strong id="connectedCount">0</strong><span>anslutna</span></div>
+      <div><strong id="readyCount">0</strong><span>redo</span></div>
+      <div><strong id="preparedCount">0</strong><span>video redo</span></div>
+      <div><strong id="soundCount">0</strong><span>ljud verifierat</span></div>
+    </section>
+
+    <label>
+      Starta om:
+      <input id="delay" type="number" value="5" min="3" max="60">
+      sekunder
+    </label>
+
+    <div class="controls">
+      <button id="startBtn">STARTA FILMEN</button>
+      <button id="clearStartBtn" class="secondary">Avbryt start</button>
+      <button id="resetBtn" class="secondary">Nollställ gäster</button>
+    </div>
+
+    <p id="status">Startar admin...</p>
+
+    <section class="qr-section">
+      <h2>Gästlänk</h2>
+      <div id="qrcode"></div>
+      <p class="small">Skanna denna QR-kod med gästernas mobiler.</p>
+    </section>
+
+    <textarea id="guestLink" readonly></textarea>
+    <button id="copyLinkBtn" class="secondary">Kopiera gästlänk</button>
+
+    <details open>
+      <summary>Testflöde</summary>
+      <ol>
+        <li>Öppna gästlänken på flera mobiler.</li>
+        <li>Tryck <strong>Jag är redo</strong> på varje mobil.</li>
+        <li>Kontrollera antalet redo här.</li>
+        <li>Tryck <strong>STARTA FILMEN</strong>.</li>
+      </ol>
+    </details>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

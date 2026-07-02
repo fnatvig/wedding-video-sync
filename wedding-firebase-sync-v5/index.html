@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bröllopsfilm</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Filmen börjar snart</h1>
+    <p class="lead">Tryck på knappen och håll mobilen horisontellt.</p>
+
+    <video id="video" playsinline preload="auto" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback">
+      <source src="video.mp4" type="video/mp4">
+      Din webbläsare kan inte spela upp videon.
+    </video>
+
+    <section class="controls">
+      <button id="readyBtn">Jag är redo</button>
+
+      <div id="soundTestPanel" class="hidden panel">
+        <h2>Ljudtest</h2>
+        <p>Tryck på knappen nedan. Du ska höra en kort ton.</p>
+        <button id="playSoundTestBtn">Spela ljudtest</button>
+        <button id="soundYesBtn" class="secondary hidden">Jag hörde ljudet</button>
+        <button id="soundNoBtn" class="secondary hidden">Jag hörde inget ljud</button>
+      </div>
+
+      <button id="manualStartBtn" class="hidden">Tryck här för att starta filmen</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </section>
+
+    <p id="status">Startar app...</p>
+    <p id="countdown"></p>
+
+    <details>
+      <summary>Debug</summary>
+      <pre id="debug"></pre>
+    </details>
+  </main>
+
+  <script type="module" src="guest.js"></script>
+</body>
+</html>
