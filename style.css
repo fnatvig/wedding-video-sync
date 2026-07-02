@@ -1,185 +1,31 @@
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
-  margin: 0;
-  min-height: 100vh;
-  padding: 20px;
-  display: grid;
-  place-items: center;
-  background: #111;
-  color: white;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 0; min-height: 100vh; padding: 20px; display: grid; place-items: center;
+  background: #111; color: white; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
-
-.card {
-  width: min(800px, 100%);
-  text-align: center;
+.card { width: min(800px, 100%); text-align: center; }
+h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 0 0 0.5rem; }
+.lead { font-size: 1.15rem; opacity: 0.9; }
+.controls { display: grid; gap: 12px; justify-items: center; margin: 24px 0; }
+button, .buttonlike {
+  border: 0; border-radius: 999px; padding: 14px 22px; font-size: 1.1rem; cursor: pointer;
+  background: white; color: #111; text-decoration: none; display: inline-block; margin: 6px;
 }
-
-h1 {
-  font-size: clamp(2rem, 8vw, 4rem);
-  margin: 0 0 0.5rem;
-}
-
-.lead {
-  font-size: 1.15rem;
-  opacity: 0.9;
-}
-
-video {
-  width: 100%;
-  max-height: 55vh;
-  background: black;
-  border-radius: 16px;
-  margin: 20px 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-.controls {
-  display: grid;
-  gap: 12px;
-  justify-items: center;
-  margin: 16px 0;
-}
-
-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 14px 22px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  background: white;
-  color: #111;
-  margin: 6px;
-}
-
-button:disabled {
-  opacity: 0.45;
-}
-
-.secondary {
-  opacity: 0.85;
-}
-
-input {
-  width: 90px;
-  padding: 8px;
-  font-size: 1.1rem;
-}
-
-textarea {
-  width: 100%;
-  min-height: 90px;
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 1rem;
-  margin-top: 14px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin: 24px 0;
-}
-
-.stats div {
-  background: rgba(255,255,255,0.12);
-  border-radius: 18px;
-  padding: 18px;
-}
-
-.stats strong {
-  display: block;
-  font-size: 3rem;
-}
-
-.stats span {
-  opacity: 0.8;
-}
-
-#status {
-  font-size: 1.05rem;
-  min-height: 1.4em;
-}
-
-#countdown {
-  font-size: clamp(2.5rem, 12vw, 6rem);
-  font-weight: 800;
-  margin: 0.2em 0;
-}
-
-details {
-  margin-top: 24px;
-  text-align: left;
-  opacity: 0.9;
-}
-
-code, pre {
-  background: rgba(255,255,255,0.15);
-  padding: 2px 5px;
-  border-radius: 5px;
-}
-
-pre {
-  padding: 12px;
-  overflow-x: auto;
-}
-
-
-.qr-section {
-  margin: 24px auto;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-}
-
-#qrcode {
-  background: white;
-  padding: 14px;
-  border-radius: 18px;
-  width: max-content;
-}
-
-#qrcode img {
-  display: block;
-}
-
-.small {
-  font-size: 0.95rem;
-  opacity: 0.8;
-}
-
-
-.hidden {
-  display: none !important;
-}
-
-#manualStartBtn {
-  background: #fff;
-  color: #111;
-  font-weight: 800;
-  font-size: 1.25rem;
-  padding: 18px 28px;
-}
-
-
-.panel {
-  background: rgba(255,255,255,0.12);
-  border-radius: 18px;
-  padding: 18px;
-  margin: 8px 0;
-}
-
-.panel h2 {
-  margin-top: 0;
-}
-
-@media (max-width: 720px) {
-  .stats {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+button:disabled { opacity: 0.45; }
+.secondary { opacity: 0.85; }
+.danger { background: #ffd8d8; color: #220000; }
+input { width: 90px; padding: 8px; font-size: 1.1rem; }
+textarea { width: 100%; min-height: 90px; padding: 12px; border-radius: 12px; font-size: 1rem; margin-top: 14px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+.stats div, .panel { background: rgba(255,255,255,0.12); border-radius: 18px; padding: 18px; }
+.stats strong { display: block; font-size: 3rem; }
+.stats span { opacity: 0.8; }
+#status { font-size: 1.05rem; min-height: 1.4em; }
+#countdown { font-size: clamp(2.5rem, 12vw, 6rem); font-weight: 800; margin: 0.2em 0; }
+.hidden { display: none !important; }
+.qr-section { margin: 24px auto; display: grid; justify-items: center; gap: 8px; }
+#qrcode { background: white; padding: 14px; border-radius: 18px; width: max-content; }
+#qrcode img { display: block; }
+.small { font-size: 0.95rem; opacity: 0.8; }
+details { margin-top: 24px; text-align: left; opacity: 0.9; }
+pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; overflow-x: auto; }

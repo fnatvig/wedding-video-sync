@@ -9,51 +9,26 @@
 <body>
   <main class="card">
     <h1>Admin</h1>
-    <p class="lead">När gästerna är redo: tryck start. Alla får en gemensam starttid några sekunder framåt.</p>
-
+    <p class="lead">Samla gästerna här. Själva filmen spelas via YouTube Live.</p>
     <section class="stats">
       <div><strong id="connectedCount">0</strong><span>anslutna</span></div>
       <div><strong id="readyCount">0</strong><span>redo</span></div>
-      <div><strong id="preparedCount">0</strong><span>video redo</span></div>
-      <div><strong id="soundCount">0</strong><span>ljud verifierat</span></div>
     </section>
-
-    <label>
-      Starta om:
-      <input id="delay" type="number" value="5" min="3" max="60">
-      sekunder
-    </label>
-
+    <label>Nedräkning: <input id="delay" type="number" value="5" min="3" max="30"> sekunder</label>
     <div class="controls">
-      <button id="startBtn">STARTA FILMEN</button>
+      <button id="startBtn">NU BÖRJAR FILMEN</button>
       <button id="clearStartBtn" class="secondary">Avbryt nedräkning</button>
-      <button id="stopBtn" class="secondary danger">STOPPA FILMEN</button>
-      <button id="resetFilmBtn" class="secondary">Återställ filmen till början</button>
       <button id="resetBtn" class="secondary danger">Nollställ session</button>
     </div>
-
     <p id="status">Startar admin...</p>
-
     <section class="qr-section">
       <h2>Gästlänk</h2>
       <div id="qrcode"></div>
-      <p class="small">Skanna denna QR-kod med gästernas mobiler.</p>
+      <p class="small">Gästerna skannar denna QR-kod.</p>
     </section>
-
     <textarea id="guestLink" readonly></textarea>
     <button id="copyLinkBtn" class="secondary">Kopiera gästlänk</button>
-
-    <details open>
-      <summary>Testflöde</summary>
-      <ol>
-        <li>Öppna gästlänken på flera mobiler.</li>
-        <li>Tryck <strong>Jag är redo</strong> på varje mobil.</li>
-        <li>Kontrollera antalet redo här.</li>
-        <li>Tryck <strong>STARTA FILMEN</strong>.</li>
-      </ol>
-    </details>
   </main>
-
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script type="module" src="admin.js"></script>
 </body>
