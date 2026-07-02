@@ -78,7 +78,7 @@ readyBtn.addEventListener("click", async () => {
     readyAt: serverTimestamp()
   });
 
-  statusEl.textContent = "Redo. Lämna denna sida öppen och ha YouTube Live redo.";
+  statusEl.textContent = "Redo. Stanna på denna sida och ha YouTube Live redo.";
   debug();
 
   if (startAt) runCountdown();
