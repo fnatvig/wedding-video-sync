@@ -10,5 +10,3 @@ export const firebaseConfig = {
 };
 
 export const SESSION_ID = "wedding-live";
-
-export const YOUTUBE_LIVE_URL = "PASTE_YOUTUBE_LIVE_URL_HERE";

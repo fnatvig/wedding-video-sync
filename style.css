@@ -16,7 +16,7 @@ button:disabled { opacity: 0.45; }
 .danger { background: #ffd8d8; color: #220000; }
 input { width: 90px; padding: 8px; font-size: 1.1rem; }
 textarea { width: 100%; min-height: 90px; padding: 12px; border-radius: 12px; font-size: 1rem; margin-top: 14px; }
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
 .stats div, .panel { background: rgba(255,255,255,0.12); border-radius: 18px; padding: 18px; }
 .stats strong { display: block; font-size: 3rem; }
 .stats span { opacity: 0.8; }
@@ -29,3 +29,22 @@ textarea { width: 100%; min-height: 90px; padding: 12px; border-radius: 12px; fo
 .small { font-size: 0.95rem; opacity: 0.8; }
 details { margin-top: 24px; text-align: left; opacity: 0.9; }
 pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; overflow-x: auto; }
+
+.stacked {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.url-input {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 1rem;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.45;
+}

@@ -17,3 +17,10 @@ firebase-config.js
 README.md
 
 Ingen video.mp4 behövs.
+
+
+## v2
+
+- YouTube Live-länken sparas via admin-sidan i Firebase.
+- Gästerna får automatiskt den senaste länken utan ny deploy.
+- Admin visar nu anslutna, redo och saknas.

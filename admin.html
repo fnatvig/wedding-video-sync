@@ -13,6 +13,17 @@
     <section class="stats">
       <div><strong id="connectedCount">0</strong><span>anslutna</span></div>
       <div><strong id="readyCount">0</strong><span>redo</span></div>
+      <div><strong id="missingCount">0</strong><span>saknas</span></div>
+    </section>
+
+    <section class="panel">
+      <h2>YouTube Live</h2>
+      <label class="stacked">
+        Länk till livesändningen:
+        <input id="youtubeUrlInput" class="url-input" type="url" placeholder="https://www.youtube.com/watch?v=...">
+      </label>
+      <button id="saveYoutubeUrlBtn" class="secondary">Spara YouTube-länk</button>
+      <p id="youtubeUrlStatus" class="small">Ingen länk sparad ännu.</p>
     </section>
     <label>Nedräkning: <input id="delay" type="number" value="5" min="3" max="30"> sekunder</label>
     <div class="controls">
