@@ -14,6 +14,8 @@ const soundCountEl = document.getElementById("soundCount");
 const delayInput = document.getElementById("delay");
 const startBtn = document.getElementById("startBtn");
 const clearStartBtn = document.getElementById("clearStartBtn");
+const stopBtn = document.getElementById("stopBtn");
+const resetFilmBtn = document.getElementById("resetFilmBtn");
 const resetBtn = document.getElementById("resetBtn");
 const statusEl = document.getElementById("status");
 const guestLink = document.getElementById("guestLink");
@@ -21,6 +23,8 @@ const copyLinkBtn = document.getElementById("copyLinkBtn");
 
 const clientsRef = ref(db, `sessions/${SESSION_ID}/clients`);
 const startRef = ref(db, `sessions/${SESSION_ID}/startAt`);
+const stopRef = ref(db, `sessions/${SESSION_ID}/stopCounter`);
+const resetFilmRef = ref(db, `sessions/${SESSION_ID}/resetFilmCounter`);
 const sessionRef = ref(db, `sessions/${SESSION_ID}`);
 const offsetRef = ref(db, ".info/serverTimeOffset");
 
@@ -71,6 +75,24 @@ clearStartBtn.addEventListener("click", async () => {
   statusEl.textContent = "Start avbruten.";
 });
 
+stopBtn.addEventListener("click", async () => {
+  await remove(startRef);
+  await update(sessionRef, {
+    stopCounter: increment(1),
+    stoppedAt: serverTimestamp()
+  });
+  statusEl.textContent = "Stoppsignal skickad.";
+});
+
+resetFilmBtn.addEventListener("click", async () => {
+  await remove(startRef);
+  await update(sessionRef, {
+    resetFilmCounter: increment(1),
+    filmResetAt: serverTimestamp()
+  });
+  statusEl.textContent = "Filmen återställd till början. Gästernas redo-status behålls.";
+});
+
 resetBtn.addEventListener("click", async () => {
   await remove(startRef);
   await remove(clientsRef);
@@ -78,7 +100,7 @@ resetBtn.addEventListener("click", async () => {
     resetCounter: increment(1),
     resetAt: serverTimestamp()
   });
-  statusEl.textContent = "Gäster nollställda.";
+  statusEl.textContent = "Session nollställd.";
 });
 
 copyLinkBtn.addEventListener("click", async () => {

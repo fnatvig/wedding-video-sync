@@ -28,6 +28,8 @@ const debugEl = document.getElementById("debug");
 const clientId = crypto.randomUUID();
 const clientRef = ref(db, `sessions/${SESSION_ID}/clients/${clientId}`);
 const startRef = ref(db, `sessions/${SESSION_ID}/startAt`);
+const stopRef = ref(db, `sessions/${SESSION_ID}/stopCounter`);
+const resetFilmRef = ref(db, `sessions/${SESSION_ID}/resetFilmCounter`);
 const resetRef = ref(db, `sessions/${SESSION_ID}/resetCounter`);
 const offsetRef = ref(db, ".info/serverTimeOffset");
 
@@ -37,6 +39,8 @@ let videoPrepared = false;
 let soundVerified = false;
 let startAt = null;
 let timer = null;
+let lastStopCounter = null;
+let lastResetFilmCounter = null;
 let lastResetCounter = null;
 let audioCtx = null;
 
@@ -78,18 +82,14 @@ await set(clientRef, {
 onDisconnect(clientRef).remove();
 
 readyBtn.addEventListener("click", async () => {
-  statusEl.textContent = "Förbereder video...";
+  statusEl.textContent = "Förbereder...";
 
   try {
-    // Prepare video muted to avoid accidentally starting full audio/video.
-    video.muted = true;
-    video.currentTime = 0;
-
-    await video.play();
-    await new Promise(resolve => setTimeout(resolve, 120));
+    // Viktigt: spela INTE huvudfilmen här.
     video.pause();
-    video.currentTime = 0;
     video.muted = false;
+    video.currentTime = 0;
+    video.load();
 
     videoPrepared = true;
     isReady = true;
@@ -103,12 +103,12 @@ readyBtn.addEventListener("click", async () => {
       readyAt: serverTimestamp()
     });
 
-    statusEl.textContent = "Video redo. Gör ljudtestet.";
+    statusEl.textContent = "Redo. Gör ljudtestet.";
     debug();
 
     if (startAt) runCountdown();
   } catch (err) {
-    statusEl.textContent = "Kunde inte förbereda video. Tryck direkt på videon en gång och tryck sedan 'Jag är redo' igen.";
+    statusEl.textContent = "Kunde inte förbereda video. Ladda om sidan och testa igen.";
     console.error(err);
     debug({ error: String(err) });
   }
@@ -186,6 +186,55 @@ onValue(startRef, (snap) => {
 
   debug();
 });
+
+
+onValue(stopRef, (snap) => {
+  const value = snap.val();
+  if (lastStopCounter === null) {
+    lastStopCounter = value;
+    return;
+  }
+
+  if (value !== lastStopCounter) {
+    lastStopCounter = value;
+    stopPlayback("Admin stoppade filmen.");
+  }
+});
+
+function stopPlayback(message) {
+  clearTimeout(timer);
+  video.pause();
+  video.currentTime = 0;
+  manualStartBtn.classList.add("hidden");
+  countdownEl.textContent = "";
+  statusEl.textContent = message || "Filmen stoppad.";
+  debug({ stopped: true });
+}
+
+
+onValue(resetFilmRef, (snap) => {
+  const value = snap.val();
+  if (lastResetFilmCounter === null) {
+    lastResetFilmCounter = value;
+    return;
+  }
+
+  if (value !== lastResetFilmCounter) {
+    lastResetFilmCounter = value;
+    resetFilmToBeginning("Filmen återställd till början. Väntar på ny start.");
+  }
+});
+
+function resetFilmToBeginning(message) {
+  clearTimeout(timer);
+  video.pause();
+  video.currentTime = 0;
+  video.muted = false;
+  manualStartBtn.classList.add("hidden");
+  countdownEl.textContent = "";
+  statusEl.textContent = message || "Filmen återställd.";
+  debug({ filmReset: true });
+}
 
 onValue(resetRef, async (snap) => {
   const value = snap.val();
