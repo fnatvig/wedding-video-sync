@@ -24,13 +24,6 @@ const startRef = ref(db, `sessions/${SESSION_ID}/startAt`);
 const sessionRef = ref(db, `sessions/${SESSION_ID}`);
 const youtubeUrlRef = ref(db, `sessions/${SESSION_ID}/youtubeLiveUrl`);
 const offsetRef = ref(db, ".info/serverTimeOffset");
-const streamCommandRef = ref(db, `sessions/${SESSION_ID}/streamCommand`);
-
-const videoCommandBtns = document.querySelectorAll(".videoCommandBtn");
-const customVideoInput = document.getElementById("customVideoInput");
-const playCustomVideoBtn = document.getElementById("playCustomVideoBtn");
-const standbyStreamBtn = document.getElementById("standbyStreamBtn");
-const streamCommandStatus = document.getElementById("streamCommandStatus");
 
 let serverOffsetMs = 0;
 function serverNow() { return Date.now() + serverOffsetMs; }
@@ -65,64 +58,6 @@ onValue(youtubeUrlRef, (snap) => {
   const url = snap.val() || "";
   youtubeUrlInput.value = url;
   youtubeUrlStatus.textContent = url ? "YouTube-länk sparad." : "Ingen länk sparad ännu.";
-});
-
-async function sendStreamCommand(command) {
-  const payload = {
-    commandId: Date.now(),
-    sentAt: serverTimestamp(),
-    ...command
-  };
-
-  await set(streamCommandRef, payload);
-
-  if (command.action === "play") {
-    const delaySeconds = await sendGuestStartSignal(command.video);
-    streamCommandStatus.textContent = `Kommando skickat: spela ${command.video}. Gästerna startas om ${delaySeconds} s.`;
-    statusEl.textContent = `Spelar ${command.video}. Gästerna får startsignal om ${delaySeconds} s.`;
-  } else if (command.action === "standby") {
-    await remove(startRef);
-    streamCommandStatus.textContent = "Kommando skickat: tillbaka till svart bild.";
-    statusEl.textContent = "Streamkommando skickat: svart bild. Gästspelaren dold.";
-  }
-}
-
-function normalizeVideoFilename(value) {
-  return (value || "").trim().replaceAll("\\", "/").split("/").pop();
-}
-
-async function sendGuestStartSignal(label = "film") {
-  const delaySeconds = Math.max(3, Number(delayInput.value || 5));
-  const startAt = Math.round(serverNow() + delaySeconds * 1000);
-
-  await set(startRef, startAt);
-  await update(sessionRef, {
-    lastStartCommandAt: serverTimestamp(),
-    lastStartLabel: label
-  });
-
-  return delaySeconds;
-}
-
-videoCommandBtns.forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    const video = normalizeVideoFilename(btn.dataset.video);
-    if (!video) return;
-    await sendStreamCommand({ action: "play", video });
-  });
-});
-
-playCustomVideoBtn.addEventListener("click", async () => {
-  const video = normalizeVideoFilename(customVideoInput.value);
-  if (!video) {
-    streamCommandStatus.textContent = "Skriv ett filnamn först.";
-    return;
-  }
-  await sendStreamCommand({ action: "play", video });
-});
-
-standbyStreamBtn.addEventListener("click", async () => {
-  await sendStreamCommand({ action: "standby" });
 });
 
 saveYoutubeUrlBtn.addEventListener("click", async () => {

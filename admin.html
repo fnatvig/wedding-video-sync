@@ -25,29 +25,6 @@
       <button id="saveYoutubeUrlBtn" class="secondary">Spara YouTube-länk</button>
       <p id="youtubeUrlStatus" class="small">Ingen länk sparad ännu.</p>
     </section>
-    <section class="panel">
-      <h2>Videokontroll</h2>
-      <p class="small">Skickar kommandon till den lokala FFmpeg-controllern. Filnamnen måste finnas i samma mapp som PowerShell-scriptet.</p>
-
-      <div class="clip-grid">
-        <button class="videoCommandBtn" data-video="clip1.mp4">Spela clip1.mp4</button>
-        <button class="videoCommandBtn" data-video="clip2.mp4">Spela clip2.mp4</button>
-        <button class="videoCommandBtn" data-video="movie.mp4">Spela movie.mp4</button>
-      </div>
-
-      <label class="stacked">
-        Annat filnamn:
-        <input id="customVideoInput" class="url-input" type="text" placeholder="t.ex. barndom.mp4">
-      </label>
-
-      <div class="controls">
-        <button id="playCustomVideoBtn" class="secondary">Spela angiven fil</button>
-        <button id="standbyStreamBtn" class="secondary">Tillbaka till svart bild</button>
-      </div>
-
-      <p id="streamCommandStatus" class="small">Inget streamkommando skickat ännu.</p>
-    </section>
-
     <label>Nedräkning: <input id="delay" type="number" value="5" min="3" max="30"> sekunder</label>
     <div class="controls">
       <button id="startBtn">NU BÖRJAR FILMEN</button>

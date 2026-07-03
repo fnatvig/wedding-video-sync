@@ -50,15 +50,3 @@ pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; ove
 @media (max-width: 720px) {
   .stats { grid-template-columns: 1fr; }
 }
-
-.clip-grid {
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-  margin: 16px 0;
-}
-@media (min-width: 720px) {
-  .clip-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
