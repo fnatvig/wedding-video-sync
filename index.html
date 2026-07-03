@@ -9,21 +9,28 @@
 <body>
   <main class="card">
     <h1>Filmen börjar snart</h1>
-    <p class="lead">Tryck på knappen och ha YouTube Live-sändningen redo.</p>
+    <p class="lead">Tryck på knappen och vänta. Filmen öppnas automatiskt när den börjar.</p>
+
     <section class="controls">
       <button id="readyBtn">Jag är redo</button>
-      <a id="youtubeLink" class="buttonlike secondary" target="_blank" rel="noopener">Öppna YouTube Live</a>
       <button id="resetBtn" class="secondary">Ångra redo</button>
     </section>
+
     <p id="status">Ansluter...</p>
     <p id="countdown"></p>
+
     <section id="livePanel" class="panel hidden">
       <h2>Nu börjar filmen</h2>
-      <p>Om livesändningen inte redan är öppen, tryck på knappen nedan.</p>
-      <a id="youtubeLinkBig" class="buttonlike" target="_blank" rel="noopener">Öppna YouTube Live</a>
+      <p>Öppnar YouTube Live...</p>
+      <a id="youtubeLinkBig" class="buttonlike" target="_blank" rel="noopener">Öppna manuellt</a>
     </section>
-    <details><summary>Debug</summary><pre id="debug"></pre></details>
+
+    <details>
+      <summary>Debug</summary>
+      <pre id="debug"></pre>
+    </details>
   </main>
+
   <script type="module" src="guest.js"></script>
 </body>
 </html>

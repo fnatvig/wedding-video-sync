@@ -11,7 +11,6 @@ const statusEl = document.getElementById("status");
 const countdownEl = document.getElementById("countdown");
 const debugEl = document.getElementById("debug");
 const livePanel = document.getElementById("livePanel");
-const youtubeLink = document.getElementById("youtubeLink");
 const youtubeLinkBig = document.getElementById("youtubeLinkBig");
 
 const clientId = crypto.randomUUID();
@@ -27,15 +26,10 @@ let startAt = null;
 let timer = null;
 let lastResetCounter = null;
 let youtubeLiveUrl = "";
+let hasRedirected = false;
 
-function serverNow() { return Date.now() + serverOffsetMs; }
-
-function setYoutubeUrl(url) {
-  youtubeLiveUrl = url || "";
-  youtubeLink.href = youtubeLiveUrl || "#";
-  youtubeLinkBig.href = youtubeLiveUrl || "#";
-  youtubeLink.classList.toggle("disabled", !youtubeLiveUrl);
-  youtubeLinkBig.classList.toggle("disabled", !youtubeLiveUrl);
+function serverNow() {
+  return Date.now() + serverOffsetMs;
 }
 
 function debug(extra = {}) {
@@ -45,6 +39,7 @@ function debug(extra = {}) {
     ready: isReady,
     startAt,
     youtubeLiveUrl,
+    hasRedirected,
     ...extra
   }, null, 2);
 }
@@ -56,7 +51,8 @@ onValue(offsetRef, (snap) => {
 });
 
 onValue(youtubeUrlRef, (snap) => {
-  setYoutubeUrl(snap.val() || "");
+  youtubeLiveUrl = snap.val() || "";
+  youtubeLinkBig.href = youtubeLiveUrl || "#";
   debug({ youtubeUrlUpdated: true });
 });
 
@@ -78,7 +74,7 @@ readyBtn.addEventListener("click", async () => {
     readyAt: serverTimestamp()
   });
 
-  statusEl.textContent = "Redo. Stanna på denna sida och ha YouTube Live redo.";
+  statusEl.textContent = "Redo. Vänta här tills filmen börjar.";
   debug();
 
   if (startAt) runCountdown();
@@ -98,13 +94,6 @@ resetBtn.addEventListener("click", async () => {
   debug();
 });
 
-youtubeLink.addEventListener("click", (event) => {
-  if (!youtubeLiveUrl) {
-    event.preventDefault();
-    statusEl.textContent = "YouTube-länk saknas ännu.";
-  }
-});
-
 youtubeLinkBig.addEventListener("click", (event) => {
   if (!youtubeLiveUrl) {
     event.preventDefault();
@@ -119,6 +108,7 @@ onValue(startRef, (snap) => {
     clearTimeout(timer);
     countdownEl.textContent = "";
     livePanel.classList.add("hidden");
+    hasRedirected = false;
     if (isReady) statusEl.textContent = "Redo. Väntar på start.";
     debug();
     return;
@@ -144,6 +134,7 @@ onValue(resetRef, async (snap) => {
   if (value !== lastResetCounter) {
     lastResetCounter = value;
     isReady = false;
+    hasRedirected = false;
     readyBtn.disabled = false;
     livePanel.classList.add("hidden");
     countdownEl.textContent = "";
@@ -171,10 +162,22 @@ function runCountdown() {
 
     countdownEl.textContent = "";
     livePanel.classList.remove("hidden");
-    statusEl.textContent = youtubeLiveUrl
-      ? "Nu börjar filmen. Titta på YouTube Live."
-      : "Nu börjar filmen, men YouTube-länken saknas.";
+
+    if (!youtubeLiveUrl) {
+      statusEl.textContent = "Filmen börjar, men YouTube-länken saknas.";
+      return;
+    }
+
+    statusEl.textContent = "Öppnar YouTube Live...";
     debug({ live: true });
+
+    if (!hasRedirected) {
+      hasRedirected = true;
+
+      setTimeout(() => {
+        window.location.href = youtubeLiveUrl;
+      }, 1500);
+    }
   };
 
   tick();
