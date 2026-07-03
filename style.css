@@ -3,7 +3,7 @@ body {
   margin: 0; min-height: 100vh; padding: 20px; display: grid; place-items: center;
   background: #111; color: white; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
-.card { width: min(800px, 100%); text-align: center; }
+.card { width: min(900px, 100%); text-align: center; }
 h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 0 0 0.5rem; }
 .lead { font-size: 1.15rem; opacity: 0.9; }
 .controls { display: grid; gap: 12px; justify-items: center; margin: 24px 0; }
@@ -29,22 +29,24 @@ textarea { width: 100%; min-height: 90px; padding: 12px; border-radius: 12px; fo
 .small { font-size: 0.95rem; opacity: 0.8; }
 details { margin-top: 24px; text-align: left; opacity: 0.9; }
 pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; overflow-x: auto; }
+.stacked { display: grid; gap: 8px; text-align: left; }
+.url-input { width: 100%; max-width: 100%; padding: 12px; border-radius: 12px; font-size: 1rem; }
+.disabled { pointer-events: none; opacity: 0.45; }
 
-.stacked {
-  display: grid;
-  gap: 8px;
-  text-align: left;
-}
-
-.url-input {
+.video-wrap {
   width: 100%;
-  max-width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  font-size: 1rem;
+  aspect-ratio: 16 / 9;
+  background: black;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 16px 0;
 }
 
-.disabled {
-  pointer-events: none;
-  opacity: 0.45;
+#player {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 720px) {
+  .stats { grid-template-columns: 1fr; }
 }
