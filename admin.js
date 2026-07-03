@@ -77,16 +77,31 @@ async function sendStreamCommand(command) {
   await set(streamCommandRef, payload);
 
   if (command.action === "play") {
-    streamCommandStatus.textContent = `Kommando skickat: spela ${command.video}`;
-    statusEl.textContent = `Streamkommando skickat: spela ${command.video}`;
+    const delaySeconds = await sendGuestStartSignal(command.video);
+    streamCommandStatus.textContent = `Kommando skickat: spela ${command.video}. Gästerna startas om ${delaySeconds} s.`;
+    statusEl.textContent = `Spelar ${command.video}. Gästerna får startsignal om ${delaySeconds} s.`;
   } else if (command.action === "standby") {
+    await remove(startRef);
     streamCommandStatus.textContent = "Kommando skickat: tillbaka till svart bild.";
-    statusEl.textContent = "Streamkommando skickat: svart bild.";
+    statusEl.textContent = "Streamkommando skickat: svart bild. Gästspelaren dold.";
   }
 }
 
 function normalizeVideoFilename(value) {
   return (value || "").trim().replaceAll("\\", "/").split("/").pop();
+}
+
+async function sendGuestStartSignal(label = "film") {
+  const delaySeconds = Math.max(3, Number(delayInput.value || 5));
+  const startAt = Math.round(serverNow() + delaySeconds * 1000);
+
+  await set(startRef, startAt);
+  await update(sessionRef, {
+    lastStartCommandAt: serverTimestamp(),
+    lastStartLabel: label
+  });
+
+  return delaySeconds;
 }
 
 videoCommandBtns.forEach((btn) => {
