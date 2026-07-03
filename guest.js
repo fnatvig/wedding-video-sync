@@ -89,43 +89,34 @@ const youtubeApiCheck = setInterval(() => {
   }
 }, 100);
 
-
 async function playReadySound() {
+  // Tydligare pling än tidigare. Om soundOk=true men inget hörs är det sannolikt
+  // telefonens tyst läge/volym som stoppar ljudet, inte JavaScript-fel.
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return false;
 
   try {
     const ctx = new AudioContext();
-
-    if (ctx.state === "suspended") {
-      await ctx.resume();
-    }
+    if (ctx.state === "suspended") await ctx.resume();
 
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 
     oscillator.type = "sine";
-    oscillator.frequency.value = 880;
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
 
     oscillator.connect(gain);
     gain.connect(ctx.destination);
 
-    // Starta nästan ljudlöst
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-
-    // Höj snabbt till en tydlig nivå
     gain.gain.exponentialRampToValueAtTime(0.45, ctx.currentTime + 0.02);
-
-    // Sänk sedan långsamt
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.65);
 
     oscillator.start();
     oscillator.stop(ctx.currentTime + 0.7);
 
     setTimeout(() => ctx.close(), 1000);
-
     return true;
-
   } catch (err) {
     debug({ readySoundError: String(err) });
     return false;
@@ -133,9 +124,8 @@ async function playReadySound() {
 }
 
 function primeYouTubePlayer() {
-  // Försök "väcka" YouTube-spelaren medan vi fortfarande är inne i användarens klick.
-  // Detta är inte garanterat i alla mobilwebbläsare, men förbättrar chansen att
-  // senare playVideo() fungerar utan en extra knapptryckning.
+  // Försöker väcka YouTube-spelaren direkt från knapptrycket.
+  // Viktigt: denna funktion körs före await i readyBtn-listenern.
   if (!youtubeVideoId) return;
   if (!player && youtubeApiReady) createOrLoadPlayer();
 
@@ -164,6 +154,7 @@ function primeYouTubePlayer() {
 
 function createOrLoadPlayer() {
   if (!youtubeVideoId || !window.YT || !window.YT.Player) return;
+
   if (player && typeof player.loadVideoById === "function") {
     player.loadVideoById(youtubeVideoId);
     return;
@@ -212,11 +203,10 @@ readyBtn.addEventListener("click", async () => {
   readyBtn.disabled = true;
   statusEl.textContent = "Testar ljud och förbereder spelaren...";
 
-  // Viktigt: försök väcka YouTube direkt i klicket, innan await
+  // Kör detta direkt från klicket, före await, för maximal chans att webbläsaren accepterar media.
   primeYouTubePlayer();
 
   const soundOk = await playReadySound();
-  alert("soundOk = " + soundOk);
   mediaUnlocked = soundOk;
 
   isReady = true;
@@ -227,8 +217,8 @@ readyBtn.addEventListener("click", async () => {
   });
 
   statusEl.textContent = soundOk
-    ? "Pling! Du är redo. Vänta här tills filmen börjar."
-    : "Du är redo. Om ljudet inte hördes, kontrollera volymen.";
+    ? "Du är redo. Vänta här tills filmen börjar."
+    : "Du är redo. Om inget ljud hördes, kontrollera volymen.";
 
   debug({ readyClicked: true, soundOk });
   if (startAt) runCountdown();
@@ -324,7 +314,12 @@ function runCountdown() {
       hasTriedStart = true;
       setTimeout(() => {
         playEmbedded();
-        startLiveEdgeMonitor();
+
+        // Viktigt för mindre buffring:
+        // Vi startar INTE automatisk live-edge-monitor här.
+        // Tidigare seekTo var tredje sekund kan kasta YouTubes buffert och orsaka hack.
+        // Användaren kan fortfarande trycka "Hoppa till live" manuellt vid behov.
+        // startLiveEdgeMonitor();
       }, 500);
     }
   };
@@ -341,7 +336,12 @@ function playEmbedded() {
 
   try {
     player.playVideo();
-    setTimeout(jumpToLiveEdge, 800);
+
+    // Viktigt för mindre buffring:
+    // Vi hoppar inte automatiskt till live-kanten direkt efter start.
+    // YouTube får själv välja en stabil buffertposition.
+    // setTimeout(jumpToLiveEdge, 800);
+
     statusEl.textContent = "Spelar YouTube Live.";
     debug({ playCalled: true });
   } catch (err) {
@@ -379,15 +379,17 @@ function startLiveEdgeMonitor() {
 
       if (Number.isFinite(duration) && Number.isFinite(current) && duration > 0) {
         const behind = duration - current;
-        if (behind > 3) {
-          player.seekTo(Math.max(0, duration - 0.5), true);
+
+        // Mycket snällare än tidigare: bara korrigera om tittaren ligger långt efter.
+        if (behind > 10) {
+          player.seekTo(Math.max(0, duration - 1.0), true);
           debug({ autoCatchup: true, behind });
         }
       }
     } catch (err) {
       debug({ liveEdgeMonitorError: String(err) });
     }
-  }, 3000);
+  }, 20000);
 }
 
 function stopLiveEdgeMonitor() {

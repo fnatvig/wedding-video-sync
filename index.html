@@ -9,11 +9,10 @@
 <body>
   <main class="card">
     <h1>Filmen börjar snart</h1>
-    <p class="lead">Tryck på knappen för att testa ljudet och vänta. Filmen startar här när den börjar.</p>
+    <p class="lead">Tryck på knappen och vänta här. När filmen börjar visas spelaren på denna sida.</p>
 
     <section class="controls">
       <button id="readyBtn">🔊 Jag är redo</button>
-      <p class="small ready-help">Knappen spelar ett kort pling och förbereder spelaren.</p>
       <button id="resetBtn" class="secondary">Ångra redo</button>
     </section>
 
@@ -22,14 +21,14 @@
 
     <section id="livePanel" class="panel hidden">
       <h2>Nu börjar filmen</h2>
-      <p class="small">Om YouTube visar en LIVE-knapp, tryck på den för att komma ikapp.</p>
+      <p class="small">Om filmen inte startar automatiskt: tryck på “Starta filmen”. Om den hamnar efter: tryck “Hoppa till live”.</p>
 
       <div class="video-wrap">
         <div id="player"></div>
       </div>
 
       <div class="controls">
-        <button id="playEmbeddedBtn">Starta spelaren</button>
+        <button id="playEmbeddedBtn">▶ Starta filmen</button>
         <button id="jumpLiveBtn" class="secondary">Hoppa till live</button>
         <a id="youtubeLinkBig" class="buttonlike secondary" target="_blank" rel="noopener">Öppna i YouTube</a>
       </div>
