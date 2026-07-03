@@ -71,11 +71,21 @@ function setYoutubeUrl(url) {
   debug({ youtubeUrlUpdated: true });
 }
 
-window.onYouTubeIframeAPIReady = () => {
+function markYouTubeApiReady() {
+  if (youtubeApiReady) return;
   youtubeApiReady = true;
   if (youtubeVideoId) createOrLoadPlayer();
   debug({ youtubeApiReady: true });
-};
+}
+
+window.onYouTubeIframeAPIReady = markYouTubeApiReady;
+
+const youtubeApiCheck = setInterval(() => {
+  if (window.YT && window.YT.Player) {
+    clearInterval(youtubeApiCheck);
+    markYouTubeApiReady();
+  }
+}, 100);
 
 function createOrLoadPlayer() {
   if (!youtubeVideoId || !window.YT || !window.YT.Player) return;
