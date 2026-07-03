@@ -91,32 +91,41 @@ const youtubeApiCheck = setInterval(() => {
 
 
 async function playReadySound() {
-  // Skapar ett mycket kort pling utan extra ljudfil.
-  // Viktigt: funktionen körs direkt från knapptrycket, vilket hjälper webbläsaren
-  // att godkänna senare ljud/video-uppspelning.
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return false;
 
   try {
     const ctx = new AudioContext();
-    if (ctx.state === "suspended") await ctx.resume();
+
+    if (ctx.state === "suspended") {
+      await ctx.resume();
+    }
 
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
 
     oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+    oscillator.frequency.value = 880;
 
     oscillator.connect(gain);
     gain.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.3);
 
-    setTimeout(() => ctx.close(), 600);
+    // Starta nästan ljudlöst
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+
+    // Höj snabbt till en tydlig nivå
+    gain.gain.exponentialRampToValueAtTime(0.45, ctx.currentTime + 0.02);
+
+    // Sänk sedan långsamt
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.65);
+
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.7);
+
+    setTimeout(() => ctx.close(), 1000);
+
     return true;
+
   } catch (err) {
     debug({ readySoundError: String(err) });
     return false;
@@ -203,9 +212,12 @@ readyBtn.addEventListener("click", async () => {
   readyBtn.disabled = true;
   statusEl.textContent = "Testar ljud och förbereder spelaren...";
 
-  const soundOk = await playReadySound();
-  mediaUnlocked = soundOk;
+  // Viktigt: försök väcka YouTube direkt i klicket, innan await
   primeYouTubePlayer();
+
+  const soundOk = await playReadySound();
+  alert("soundOk = " + soundOk);
+  mediaUnlocked = soundOk;
 
   isReady = true;
   await update(clientRef, {
