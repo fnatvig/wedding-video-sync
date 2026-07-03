@@ -33,6 +33,7 @@ let player = null;
 let youtubeApiReady = false;
 let hasTriedStart = false;
 let liveEdgeTimer = null;
+let mediaUnlocked = false;
 
 function serverNow() { return Date.now() + serverOffsetMs; }
 
@@ -47,6 +48,7 @@ function debug(extra = {}) {
     youtubeApiReady,
     playerReady: Boolean(player),
     hasTriedStart,
+    mediaUnlocked,
     ...extra
   }, null, 2);
 }
@@ -86,6 +88,70 @@ const youtubeApiCheck = setInterval(() => {
     markYouTubeApiReady();
   }
 }, 100);
+
+
+async function playReadySound() {
+  // Skapar ett mycket kort pling utan extra ljudfil.
+  // Viktigt: funktionen körs direkt från knapptrycket, vilket hjälper webbläsaren
+  // att godkänna senare ljud/video-uppspelning.
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return false;
+
+  try {
+    const ctx = new AudioContext();
+    if (ctx.state === "suspended") await ctx.resume();
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.28);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.3);
+
+    setTimeout(() => ctx.close(), 600);
+    return true;
+  } catch (err) {
+    debug({ readySoundError: String(err) });
+    return false;
+  }
+}
+
+function primeYouTubePlayer() {
+  // Försök "väcka" YouTube-spelaren medan vi fortfarande är inne i användarens klick.
+  // Detta är inte garanterat i alla mobilwebbläsare, men förbättrar chansen att
+  // senare playVideo() fungerar utan en extra knapptryckning.
+  if (!youtubeVideoId) return;
+  if (!player && youtubeApiReady) createOrLoadPlayer();
+
+  if (!player || typeof player.playVideo !== "function") {
+    debug({ primePlayer: false, reason: "player not ready" });
+    return;
+  }
+
+  try {
+    if (typeof player.mute === "function") player.mute();
+    player.playVideo();
+
+    setTimeout(() => {
+      try {
+        player.pauseVideo?.();
+        player.unMute?.();
+        debug({ primePlayer: true });
+      } catch (err) {
+        debug({ primePlayerPauseError: String(err) });
+      }
+    }, 450);
+  } catch (err) {
+    debug({ primePlayerError: String(err) });
+  }
+}
 
 function createOrLoadPlayer() {
   if (!youtubeVideoId || !window.YT || !window.YT.Player) return;
@@ -134,16 +200,31 @@ await set(clientRef, {
 onDisconnect(clientRef).remove();
 
 readyBtn.addEventListener("click", async () => {
-  isReady = true;
   readyBtn.disabled = true;
-  await update(clientRef, { ready: true, readyAt: serverTimestamp() });
-  statusEl.textContent = "Redo. Vänta här tills filmen börjar.";
-  debug();
+  statusEl.textContent = "Testar ljud och förbereder spelaren...";
+
+  const soundOk = await playReadySound();
+  mediaUnlocked = soundOk;
+  primeYouTubePlayer();
+
+  isReady = true;
+  await update(clientRef, {
+    ready: true,
+    readyAt: serverTimestamp(),
+    mediaUnlocked: soundOk
+  });
+
+  statusEl.textContent = soundOk
+    ? "Pling! Du är redo. Vänta här tills filmen börjar."
+    : "Du är redo. Om ljudet inte hördes, kontrollera volymen.";
+
+  debug({ readyClicked: true, soundOk });
   if (startAt) runCountdown();
 });
 
 resetBtn.addEventListener("click", async () => {
   isReady = false;
+  mediaUnlocked = false;
   readyBtn.disabled = false;
   livePanel.classList.add("hidden");
   countdownEl.textContent = "";
@@ -192,6 +273,7 @@ onValue(resetRef, async (snap) => {
   if (value !== lastResetCounter) {
     lastResetCounter = value;
     isReady = false;
+    mediaUnlocked = false;
     hasTriedStart = false;
     readyBtn.disabled = false;
     livePanel.classList.add("hidden");
