@@ -448,7 +448,7 @@ function startLiveEdgeMonitor() {
       ) {
         const behind = duration - current;
 
-        // Konservativ gräns. Sänk till 5 om du vill vara lite mer aggressiv.
+        // Konservativ gräns. Sänk till 7 om du vill vara lite mer aggressiv.
         // Gå helst inte ner till 2, eftersom seekTo kan kasta bufferten och ge mer hack.
         
         if (behind > 8) {
