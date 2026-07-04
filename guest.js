@@ -7,10 +7,13 @@ const db = getDatabase(app);
 
 const readyBtn = document.getElementById("readyBtn");
 const resetBtn = document.getElementById("resetBtn");
+const readyPanel = document.getElementById("readyPanel");
 const statusEl = document.getElementById("status");
 const countdownEl = document.getElementById("countdown");
+const countdownOverlay = document.getElementById("countdownOverlay");
 const debugEl = document.getElementById("debug");
 const livePanel = document.getElementById("livePanel");
+const rescueControls = document.getElementById("rescueControls");
 const youtubeLinkBig = document.getElementById("youtubeLinkBig");
 const playEmbeddedBtn = document.getElementById("playEmbeddedBtn");
 const jumpLiveBtn = document.getElementById("jumpLiveBtn");
@@ -26,16 +29,14 @@ let serverOffsetMs = 0;
 let isReady = false;
 let startAt = null;
 let timer = null;
+let rescueTimer = null;
 let lastResetCounter = null;
 let youtubeLiveUrl = "";
 let youtubeVideoId = "";
 let player = null;
 let youtubeApiReady = false;
-let playerReady = false;
-let hasTriedStart = false;
-let liveEdgeTimer = null;
+let hasStartedForThisCommand = false;
 let mediaUnlocked = false;
-let lastPlayerState = null;
 
 function serverNow() { return Date.now() + serverOffsetMs; }
 
@@ -48,35 +49,11 @@ function debug(extra = {}) {
     youtubeLiveUrl,
     youtubeVideoId,
     youtubeApiReady,
-    playerReady,
-    playerExists: Boolean(player),
-    hasTriedStart,
+    playerReady: Boolean(player),
+    hasStartedForThisCommand,
     mediaUnlocked,
-    lastPlayerState,
     ...extra
   }, null, 2);
-}
-
-function updateReadyButtonState() {
-  if (isReady) return;
-
-  if (!youtubeLiveUrl || !youtubeVideoId) {
-    readyBtn.disabled = true;
-    readyBtn.textContent = "Väntar på YouTube-länk...";
-    statusEl.textContent = "Ansluten. Väntar på att YouTube-länken ska laddas.";
-    return;
-  }
-
-  if (!youtubeApiReady || !playerReady) {
-    readyBtn.disabled = true;
-    readyBtn.textContent = "Laddar spelare...";
-    statusEl.textContent = "Ansluten. Laddar YouTube-spelaren...";
-    return;
-  }
-
-  readyBtn.disabled = false;
-  readyBtn.textContent = "🔊 Jag är redo";
-  statusEl.textContent = "Ansluten. Tryck 'Jag är redo'.";
 }
 
 function getYouTubeId(url) {
@@ -95,9 +72,7 @@ function setYoutubeUrl(url) {
   youtubeLiveUrl = url || "";
   youtubeVideoId = getYouTubeId(youtubeLiveUrl);
   youtubeLinkBig.href = youtubeLiveUrl || "#";
-  playerReady = false;
   if (youtubeApiReady && youtubeVideoId) createOrLoadPlayer();
-  updateReadyButtonState();
   debug({ youtubeUrlUpdated: true });
 }
 
@@ -105,7 +80,6 @@ function markYouTubeApiReady() {
   if (youtubeApiReady) return;
   youtubeApiReady = true;
   if (youtubeVideoId) createOrLoadPlayer();
-  updateReadyButtonState();
   debug({ youtubeApiReady: true });
 }
 
@@ -117,6 +91,37 @@ const youtubeApiCheck = setInterval(() => {
     markYouTubeApiReady();
   }
 }, 100);
+
+function createOrLoadPlayer() {
+  if (!youtubeVideoId || !window.YT || !window.YT.Player) return;
+
+  if (player && typeof player.loadVideoById === "function") {
+    player.loadVideoById(youtubeVideoId);
+    return;
+  }
+
+  player = new YT.Player("player", {
+    width: "100%",
+    height: "390",
+    videoId: youtubeVideoId,
+    playerVars: {
+      autoplay: 0,
+      controls: 1,
+      playsinline: 1,
+      modestbranding: 1,
+      rel: 0
+    },
+    events: {
+      onReady: () => debug({ playerEvent: "ready" }),
+      onStateChange: (event) => debug({ playerState: event.data }),
+      onError: (event) => {
+        statusEl.textContent = "YouTube-spelaren gav ett fel. Använd 'Öppna i YouTube'.";
+        rescueControls.classList.remove("hidden");
+        debug({ playerError: event.data });
+      }
+    }
+  });
+}
 
 async function playReadySound() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -131,18 +136,16 @@ async function playReadySound() {
 
     oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-
     oscillator.connect(gain);
     gain.connect(ctx.destination);
 
     gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.45, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.65);
+    gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
 
     oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.7);
-
-    setTimeout(() => ctx.close(), 1000);
+    oscillator.stop(ctx.currentTime + 0.5);
+    setTimeout(() => ctx.close(), 800);
     return true;
   } catch (err) {
     debug({ readySoundError: String(err) });
@@ -162,7 +165,6 @@ function primeYouTubePlayer() {
   try {
     player.mute?.();
     player.playVideo();
-
     setTimeout(() => {
       try {
         player.pauseVideo?.();
@@ -177,58 +179,9 @@ function primeYouTubePlayer() {
   }
 }
 
-function createOrLoadPlayer() {
-  if (!youtubeVideoId || !window.YT || !window.YT.Player) return;
-
-  if (player && typeof player.loadVideoById === "function") {
-    playerReady = false;
-    player.loadVideoById(youtubeVideoId);
-    return;
-  }
-
-  player = new YT.Player("player", {
-    width: "100%",
-    height: "390",
-    videoId: youtubeVideoId,
-    playerVars: {
-      autoplay: 0,
-      controls: 1,
-      playsinline: 1,
-      modestbranding: 1,
-      rel: 0
-    },
-    events: {
-      onReady: () => {
-        playerReady = true;
-        updateReadyButtonState();
-        debug({ playerEvent: "ready" });
-      },
-      onStateChange: (event) => {
-        lastPlayerState = event.data;
-        debug({ playerState: event.data });
-      },
-      onError: (event) => {
-        statusEl.textContent = "YouTube-spelaren gav ett fel. Använd 'Öppna i YouTube'.";
-        debug({ playerError: event.data });
-      }
-    }
-  });
-}
-
-function stopPlayer() {
-  stopLiveEdgeMonitor();
-
-  if (player) {
-    try { player.stopVideo?.(); } catch {}
-    try { player.pauseVideo?.(); } catch {}
-  }
-
-  hasTriedStart = false;
-}
-
 onValue(offsetRef, (snap) => {
   serverOffsetMs = snap.val() || 0;
-  updateReadyButtonState();
+  if (!isReady) statusEl.textContent = "Ansluten. Tryck 'Jag är redo'.";
   debug();
 });
 
@@ -247,36 +200,27 @@ readyBtn.addEventListener("click", async () => {
   readyBtn.disabled = true;
   statusEl.textContent = "Förbereder spelaren...";
 
-  // Kör detta direkt från klicket, före await, för maximal chans att webbläsaren accepterar media.
+  // Ska köras direkt i klicket, före await.
   primeYouTubePlayer();
 
   const soundOk = await playReadySound();
   mediaUnlocked = soundOk;
-
   isReady = true;
+
   await update(clientRef, {
     ready: true,
     readyAt: serverTimestamp(),
     mediaUnlocked: soundOk
   });
 
-  statusEl.textContent = "Du är redo. Vänta här tills filmen börjar.";
-
+  statusEl.textContent = "Du är redo. Vänta här tills nedräkningen börjar.";
   debug({ readyClicked: true, soundOk });
-  if (startAt) runCountdown();
+  if (startAt) runCountdownAndPrebuffer();
 });
 
 resetBtn.addEventListener("click", async () => {
-  isReady = false;
-  mediaUnlocked = false;
-  readyBtn.disabled = false;
-  stopPlayer();
-  livePanel.classList.add("hidden");
-  countdownEl.textContent = "";
-  statusEl.textContent = "Redo ångrat. Tryck igen när du är redo.";
+  await localReset("Redo ångrat. Tryck igen när du är redo.");
   await update(clientRef, { ready: false });
-  updateReadyButtonState();
-  debug({ localReset: true });
 });
 
 youtubeLinkBig.addEventListener("click", (event) => {
@@ -286,25 +230,30 @@ youtubeLinkBig.addEventListener("click", (event) => {
   }
 });
 
-playEmbeddedBtn.addEventListener("click", () => playEmbedded(false));
+playEmbeddedBtn.addEventListener("click", () => playEmbedded(true));
 jumpLiveBtn.addEventListener("click", () => jumpToLiveEdge());
 
 onValue(startRef, (snap) => {
-  startAt = snap.val();
+  const newStartAt = snap.val();
 
-  if (!startAt) {
+  if (!newStartAt) {
+    startAt = null;
     clearTimeout(timer);
-    countdownEl.textContent = "";
-    livePanel.classList.add("hidden");
-    stopPlayer();
+    clearTimeout(rescueTimer);
+    hasStartedForThisCommand = false;
+    hideVideoAndStopPlayer();
     if (isReady) statusEl.textContent = "Redo. Väntar på start.";
     debug({ startCleared: true });
     return;
   }
 
-  if (isReady) runCountdown();
+  startAt = newStartAt;
+  hasStartedForThisCommand = false;
+
+  if (isReady) runCountdownAndPrebuffer();
   else statusEl.textContent = "Filmen börjar snart. Tryck 'Jag är redo'.";
-  debug();
+
+  debug({ startReceived: true });
 });
 
 onValue(resetRef, async (snap) => {
@@ -316,78 +265,83 @@ onValue(resetRef, async (snap) => {
 
   if (value !== lastResetCounter) {
     lastResetCounter = value;
-    isReady = false;
-    mediaUnlocked = false;
-    readyBtn.disabled = false;
-    clearTimeout(timer);
-    countdownEl.textContent = "";
-    livePanel.classList.add("hidden");
-    stopPlayer();
-    statusEl.textContent = "Sessionen nollställd. Tryck 'Jag är redo'.";
+    await localReset("Sessionen nollställd. Tryck 'Jag är redo'.");
     await update(clientRef, { ready: false });
-    updateReadyButtonState();
     debug({ reset: true });
   }
 });
 
-function runCountdown() {
+function runCountdownAndPrebuffer() {
   clearTimeout(timer);
+  clearTimeout(rescueTimer);
+
+  livePanel.classList.remove("hidden");
+  countdownOverlay.classList.remove("hidden");
+  rescueControls.classList.add("hidden");
+  readyPanel.classList.add("hidden");
+
+  // Starta spelaren direkt under nedräkningen så YouTube hinner ladda svart standby.
+  startPlayerAttemptsDuringCountdown();
 
   const tick = () => {
     const remainingMs = startAt - serverNow();
+    const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+
+    countdownEl.textContent = String(remainingSeconds);
 
     if (remainingMs > 0) {
-      countdownEl.textContent = `Spelaren öppnas om ${Math.ceil(remainingMs / 1000)} s`;
+      statusEl.textContent = "Förbereder filmen...";
       timer = setTimeout(tick, 100);
       return;
     }
 
-    countdownEl.textContent = "";
-    livePanel.classList.remove("hidden");
+    countdownOverlay.classList.add("hidden");
+    statusEl.textContent = "Filmen startar nu.";
 
-    if (!youtubeLiveUrl || !youtubeVideoId) {
-      statusEl.textContent = "Filmen börjar, men YouTube-länken saknas.";
-      return;
-    }
-
-    statusEl.textContent = "Startar spelaren. Tryck ▶ Starta filmen om den inte går igång direkt.";
-    debug({ live: true });
-
-    if (!hasTriedStart) {
-      hasTriedStart = true;
-
-      // Försök automatiskt, men gör inte systemet beroende av autoplay.
-      setTimeout(() => playEmbedded(true), 100);
-      setTimeout(() => playEmbedded(true), 2500);
-      setTimeout(() => playEmbedded(true), 6000);
-
-      // Snäll catch-up långt efter start. Den ska inte störa YouTubes buffert i början.
-      setTimeout(startLiveEdgeMonitor, 25000);
-    }
+    // Visa räddningsknappar först efter några sekunder, så de inte stör normalflödet.
+    rescueTimer = setTimeout(() => {
+      rescueControls.classList.remove("hidden");
+      statusEl.textContent = "Filmen ska vara igång. Om inte, tryck Starta filmen.";
+    }, 5000);
   };
 
   tick();
 }
 
-function playEmbedded(isAutoAttempt = false) {
+function startPlayerAttemptsDuringCountdown() {
+  if (hasStartedForThisCommand) return;
+  hasStartedForThisCommand = true;
+
+  const tryPlay = (attempt = 1) => {
+    playEmbedded(false);
+    if (attempt < 5 && startAt && serverNow() < startAt) {
+      setTimeout(() => tryPlay(attempt + 1), 1500);
+    }
+  };
+
+  tryPlay();
+}
+
+function playEmbedded(userVisible) {
+  if (!youtubeLiveUrl || !youtubeVideoId) {
+    statusEl.textContent = "YouTube-länk saknas ännu.";
+    debug({ playError: "missing youtube url" });
+    return;
+  }
+
   if (!player || typeof player.playVideo !== "function") {
-    statusEl.textContent = "Spelaren är inte redo ännu. Tryck igen eller använd 'Öppna i YouTube'.";
-    debug({ playError: "player not ready", isAutoAttempt });
+    if (youtubeApiReady) createOrLoadPlayer();
+    if (userVisible) statusEl.textContent = "Spelaren är inte redo ännu. Försök igen eller öppna i YouTube.";
+    debug({ playError: "player not ready" });
     return;
   }
 
   try {
-    player.unMute?.();
     player.playVideo();
-
-    statusEl.textContent = isAutoAttempt
-      ? "Försöker starta automatiskt. Om inget händer: tryck ▶ Starta filmen."
-      : "Spelar YouTube Live.";
-
-    debug({ playCalled: true, isAutoAttempt });
+    debug({ playCalled: true, userVisible });
   } catch (err) {
-    statusEl.textContent = "Kunde inte starta automatiskt. Tryck ▶ Starta filmen.";
-    debug({ playError: String(err), isAutoAttempt });
+    if (userVisible) statusEl.textContent = "Kunde inte starta inbäddad spelare. Använd 'Öppna i YouTube'.";
+    debug({ playError: String(err) });
   }
 }
 
@@ -400,7 +354,6 @@ function jumpToLiveEdge() {
 
     if (Number.isFinite(duration) && duration > 0) {
       player.seekTo(Math.max(0, duration - 1.0), true);
-      statusEl.textContent = "Hoppade närmare live. Om det hackar, låt spelaren buffra några sekunder.";
       debug({ jumpToLive: true, duration, current });
     } else {
       debug({ jumpToLive: false, reason: "no duration" });
@@ -410,33 +363,29 @@ function jumpToLiveEdge() {
   }
 }
 
-function startLiveEdgeMonitor() {
-  stopLiveEdgeMonitor();
-  liveEdgeTimer = setInterval(() => {
-    if (!player) return;
-
-    try {
-      const duration = player.getDuration?.();
-      const current = player.getCurrentTime?.();
-
-      if (Number.isFinite(duration) && Number.isFinite(current) && duration > 0) {
-        const behind = duration - current;
-
-        // Väldigt försiktig korrigering: bara om tittaren ligger långt efter.
-        if (behind > 18) {
-          player.seekTo(Math.max(0, duration - 2.0), true);
-          debug({ autoCatchup: true, behind });
-        }
-      }
-    } catch (err) {
-      debug({ liveEdgeMonitorError: String(err) });
-    }
-  }, 30000);
+async function localReset(message) {
+  isReady = false;
+  mediaUnlocked = false;
+  hasStartedForThisCommand = false;
+  readyBtn.disabled = false;
+  readyPanel.classList.remove("hidden");
+  clearTimeout(timer);
+  clearTimeout(rescueTimer);
+  hideVideoAndStopPlayer();
+  statusEl.textContent = message;
+  debug({ localReset: true });
 }
 
-function stopLiveEdgeMonitor() {
-  if (liveEdgeTimer) {
-    clearInterval(liveEdgeTimer);
-    liveEdgeTimer = null;
+function hideVideoAndStopPlayer() {
+  countdownOverlay.classList.add("hidden");
+  rescueControls.classList.add("hidden");
+  livePanel.classList.add("hidden");
+  countdownEl.textContent = "";
+
+  try {
+    player?.stopVideo?.();
+    player?.pauseVideo?.();
+  } catch (err) {
+    debug({ stopError: String(err) });
   }
 }

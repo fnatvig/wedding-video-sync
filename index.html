@@ -9,25 +9,26 @@
 <body>
   <main class="card">
     <h1>Filmen börjar snart</h1>
-    <p class="lead">Tryck på knappen och vänta här. När filmen börjar visas spelaren på denna sida.</p>
+    <p class="lead">Tryck på knappen och vänta här. Spelaren förbereds automatiskt under nedräkningen.</p>
 
-    <section class="controls">
-      <button id="readyBtn" disabled>Laddar spelare...</button>
+    <section class="controls" id="readyPanel">
+      <button id="readyBtn">🔊 Jag är redo</button>
       <button id="resetBtn" class="secondary">Ångra redo</button>
     </section>
 
     <p id="status">Ansluter...</p>
-    <p id="countdown"></p>
 
     <section id="livePanel" class="panel hidden">
-      <h2>Gör dig redo</h2>
-      <p class="small"><strong>Tryck “Starta filmen” om den inte redan spelar.</strong> Själva filmen börjar strax efter att spelaren öppnats.</p>
-
       <div class="video-wrap">
         <div id="player"></div>
+        <div id="countdownOverlay" class="countdown-overlay hidden">
+          <div id="countdown">15</div>
+          <div class="small">Filmen börjar strax</div>
+        </div>
       </div>
 
-      <div class="controls">
+      <div id="rescueControls" class="controls rescue hidden">
+        <p class="small">Om filmen inte startar eller hamnar efter:</p>
         <button id="playEmbeddedBtn">▶ Starta filmen</button>
         <button id="jumpLiveBtn" class="secondary">Hoppa till live</button>
         <a id="youtubeLinkBig" class="buttonlike secondary" target="_blank" rel="noopener">Öppna i YouTube</a>

@@ -29,11 +29,11 @@
 
     <section class="panel">
       <h2>Start</h2>
-      <p class="small">När du trycker start får gästerna först tid att öppna/starta spelaren. FFmpeg-scriptet väntar därefter några sekunder extra innan filmen faktiskt byts in i YouTube-strömmen.</p>
-      <label>Gästförberedelse: <input id="delay" type="number" value="15" min="10" max="60"> sekunder</label>
+      <p class="small">Nedräkningen används nu för att starta gästernas spelare i förväg.</p>
+      <label>Nedräkning: <input id="delay" type="number" value="15" min="10" max="30"> sekunder</label>
       <div class="controls">
-        <button id="startBtn">FÖRBERED OCH STARTA FILMEN</button>
-        <button id="clearStartBtn" class="secondary">Avbryt start</button>
+        <button id="startBtn">STARTA NEDRÄKNING</button>
+        <button id="clearStartBtn" class="secondary">Avbryt</button>
         <button id="resetBtn" class="secondary danger">Nollställ session</button>
       </div>
     </section>
@@ -48,6 +48,7 @@
     <textarea id="guestLink" readonly></textarea>
     <button id="copyLinkBtn" class="secondary">Kopiera gästlänk</button>
   </main>
+
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script type="module" src="admin.js"></script>
 </body>

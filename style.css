@@ -21,19 +21,18 @@ textarea { width: 100%; min-height: 90px; padding: 12px; border-radius: 12px; fo
 .stats strong { display: block; font-size: 3rem; }
 .stats span { opacity: 0.8; }
 #status { font-size: 1.05rem; min-height: 1.4em; }
-#countdown { font-size: clamp(2.5rem, 12vw, 6rem); font-weight: 800; margin: 0.2em 0; }
+#countdown { font-size: clamp(5rem, 24vw, 12rem); font-weight: 900; line-height: 1; }
 .hidden { display: none !important; }
 .qr-section { margin: 24px auto; display: grid; justify-items: center; gap: 8px; }
 #qrcode { background: white; padding: 14px; border-radius: 18px; width: max-content; }
 #qrcode img { display: block; }
-.small { font-size: 0.95rem; opacity: 0.8; }
+.small { font-size: 0.95rem; opacity: 0.85; }
 details { margin-top: 24px; text-align: left; opacity: 0.9; }
 pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; overflow-x: auto; }
 .stacked { display: grid; gap: 8px; text-align: left; }
 .url-input { width: 100%; max-width: 100%; padding: 12px; border-radius: 12px; font-size: 1rem; }
-.disabled { pointer-events: none; opacity: 0.45; }
-
 .video-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: black;
@@ -41,12 +40,14 @@ pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; ove
   overflow: hidden;
   margin: 16px 0;
 }
-
-#player {
-  width: 100%;
-  height: 100%;
+#player { width: 100%; height: 100%; }
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  background: rgba(0,0,0,0.62);
+  z-index: 2;
 }
-
-@media (max-width: 720px) {
-  .stats { grid-template-columns: 1fr; }
-}
+.rescue { margin-top: 10px; }
+@media (max-width: 720px) { .stats { grid-template-columns: 1fr; } }

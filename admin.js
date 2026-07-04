@@ -69,10 +69,7 @@ saveYoutubeUrlBtn.addEventListener("click", async () => {
   }
 
   await set(youtubeUrlRef, url);
-  await update(sessionRef, {
-    youtubeLiveUrlUpdatedAt: serverTimestamp()
-  });
-
+  await update(sessionRef, { youtubeLiveUrlUpdatedAt: serverTimestamp() });
   youtubeUrlStatus.textContent = "YouTube-länk sparad.";
 });
 
@@ -81,17 +78,14 @@ startBtn.addEventListener("click", async () => {
   const startAt = Math.round(serverNow() + delaySeconds * 1000);
 
   await set(startRef, startAt);
-  await update(sessionRef, {
-    lastStartCommandAt: serverTimestamp(),
-    guestPreparationSeconds: delaySeconds
-  });
+  await update(sessionRef, { lastStartCommandAt: serverTimestamp() });
 
-  statusEl.textContent = `Gäststart skickad. Gästerna får ${delaySeconds} s att öppna/starta spelaren. Filmen byts in några sekunder efter det av FFmpeg-scriptet.`;
+  statusEl.textContent = `Nedräkning skickad. Gästspelare startar under nedräkningen. Film vid 0.`;
 });
 
 clearStartBtn.addEventListener("click", async () => {
   await remove(startRef);
-  statusEl.textContent = "Start avbruten. Gästspelarna stoppas/döljs.";
+  statusEl.textContent = "Nedräkning avbruten.";
 });
 
 resetBtn.addEventListener("click", async () => {
@@ -101,7 +95,7 @@ resetBtn.addEventListener("click", async () => {
     resetCounter: increment(1),
     resetAt: serverTimestamp()
   });
-  statusEl.textContent = "Session nollställd. Gästspelarna ska stoppas helt.";
+  statusEl.textContent = "Session nollställd.";
 });
 
 copyLinkBtn.addEventListener("click", async () => {
