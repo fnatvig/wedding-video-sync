@@ -450,7 +450,7 @@ function startLiveEdgeMonitor() {
 
         // Konservativ gräns. Sänk till 5 om du vill vara lite mer aggressiv.
         // Gå helst inte ner till 2, eftersom seekTo kan kasta bufferten och ge mer hack.
-        if (behind > 6) {
+        if (behind > 8) {
           player.seekTo(Math.max(0, duration - 0.8), true);
           debug({ autoCatchup: true, behind });
         }
