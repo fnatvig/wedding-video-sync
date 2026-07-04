@@ -431,42 +431,48 @@ function jumpToLiveEdge() {
 function startLiveEdgeMonitor() {
   stopLiveEdgeMonitor();
 
-  liveEdgeTimer = setInterval(() => {
-    if (!player) return;
+  // Första synk-hoppet: 10 sekunder efter filmstart.
+  liveEdgeTimer = setTimeout(() => {
+    jumpToStableLivePosition("initialSync");
 
-    // Låt YouTube få lite arbetsro precis i början.
-    if (Date.now() - movieStartedAt < 15000) return;
+    // Därefter: nytt synk-hopp var 30:e sekund.
+    liveEdgeTimer = setInterval(() => {
+      jumpToStableLivePosition("periodicSync");
+    }, 30000);
 
-    try {
-      const duration = player.getDuration?.();
-      const current = player.getCurrentTime?.();
-
-      if (
-        Number.isFinite(duration) &&
-        Number.isFinite(current) &&
-        duration > 0
-      ) {
-        const behind = duration - current;
-
-        // Konservativ gräns. Sänk till 7 om du vill vara lite mer aggressiv.
-        // Gå helst inte ner till 2, eftersom seekTo kan kasta bufferten och ge mer hack.
-        
-        if (behind > 20) {
-          player.seekTo(Math.max(0, duration - 8), true);
-          debug({ autoCatchup: true, behind });
-        }
-      }
-    } catch (err) {
-      debug({ liveEdgeMonitorError: String(err) });
-    }
-  }, 15000);
+    debug({ liveEdgeMonitorPeriodicStarted: true });
+  }, 10000);
 
   debug({ liveEdgeMonitorStarted: true });
+}
+
+function jumpToStableLivePosition(reason = "sync") {
+  if (!player) return;
+
+  try {
+    const duration = player.getDuration?.();
+
+    if (Number.isFinite(duration) && duration > 0) {
+      // Hoppa inte till absolut live-kant, utan lite bakom.
+      const targetBehind = 8;
+      player.seekTo(Math.max(0, duration - targetBehind), true);
+
+      debug({
+        syncJump: true,
+        reason,
+        duration,
+        targetBehind
+      });
+    }
+  } catch (err) {
+    debug({ syncJumpError: String(err), reason });
+  }
 }
 
 function stopLiveEdgeMonitor() {
   if (liveEdgeTimer) {
     clearInterval(liveEdgeTimer);
+    clearTimeout(liveEdgeTimer);
     liveEdgeTimer = null;
     debug({ liveEdgeMonitorStopped: true });
   }
