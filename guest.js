@@ -431,32 +431,6 @@ function jumpToLiveEdge() {
 function startLiveEdgeMonitor() {
   stopLiveEdgeMonitor();
 
-  setTimeout(() => {
-
-  // Kör första synken efter 10 sekunder.
-  if (!player) return;
-
-  try {
-    const duration = player.getDuration?.();
-    const current = player.getCurrentTime?.();
-
-    if (
-      Number.isFinite(duration) &&
-      Number.isFinite(current) &&
-      duration > 0
-    ) {
-      const behind = duration - current;
-
-      if (behind > 20) {
-        player.seekTo(Math.max(0, duration - 8), true);
-        debug({ autoCatchup: true, behind });
-      }
-    }
-  } catch (err) {
-    debug({ liveEdgeMonitorError: String(err) });
-  }
-
-  // Sedan fortsätter vi precis som tidigare.
   liveEdgeTimer = setInterval(() => {
     if (!player) return;
 
@@ -477,7 +451,7 @@ function startLiveEdgeMonitor() {
         // Konservativ gräns. Sänk till 5 om du vill vara lite mer aggressiv.
         // Gå helst inte ner till 2, eftersom seekTo kan kasta bufferten och ge mer hack.
         
-        if (behind > 20) {
+        if (behind > 8) {
           player.seekTo(Math.max(0, duration - 8), true);
           debug({ autoCatchup: true, behind });
         }
@@ -485,9 +459,7 @@ function startLiveEdgeMonitor() {
     } catch (err) {
       debug({ liveEdgeMonitorError: String(err) });
     }
-    }, 30000);
-
-  }, 10000);
+  }, 30000);
 
   debug({ liveEdgeMonitorStarted: true });
 }
