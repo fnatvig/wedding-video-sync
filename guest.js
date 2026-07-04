@@ -458,7 +458,7 @@ function startLiveEdgeMonitor() {
     } catch (err) {
       debug({ liveEdgeMonitorError: String(err) });
     }
-  }, 10000);
+  }, 5000);
 
   debug({ liveEdgeMonitorStarted: true });
 }
