@@ -12,7 +12,7 @@
     <p class="lead">Tryck på knappen och vänta här. När filmen börjar visas spelaren på denna sida.</p>
 
     <section class="controls">
-      <button id="readyBtn">🔊 Jag är redo</button>
+      <button id="readyBtn" disabled>Laddar spelare...</button>
       <button id="resetBtn" class="secondary">Ångra redo</button>
     </section>
 
@@ -20,8 +20,8 @@
     <p id="countdown"></p>
 
     <section id="livePanel" class="panel hidden">
-      <h2>Nu börjar filmen</h2>
-      <p class="small">Om filmen inte startar automatiskt: tryck på “Starta filmen”. Om den hamnar efter: tryck “Hoppa till live”.</p>
+      <h2>Gör dig redo</h2>
+      <p class="small"><strong>Tryck “Starta filmen” om den inte redan spelar.</strong> Själva filmen börjar strax efter att spelaren öppnats.</p>
 
       <div class="video-wrap">
         <div id="player"></div>

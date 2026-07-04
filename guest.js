@@ -31,9 +31,11 @@ let youtubeLiveUrl = "";
 let youtubeVideoId = "";
 let player = null;
 let youtubeApiReady = false;
+let playerReady = false;
 let hasTriedStart = false;
 let liveEdgeTimer = null;
 let mediaUnlocked = false;
+let lastPlayerState = null;
 
 function serverNow() { return Date.now() + serverOffsetMs; }
 
@@ -46,11 +48,35 @@ function debug(extra = {}) {
     youtubeLiveUrl,
     youtubeVideoId,
     youtubeApiReady,
-    playerReady: Boolean(player),
+    playerReady,
+    playerExists: Boolean(player),
     hasTriedStart,
     mediaUnlocked,
+    lastPlayerState,
     ...extra
   }, null, 2);
+}
+
+function updateReadyButtonState() {
+  if (isReady) return;
+
+  if (!youtubeLiveUrl || !youtubeVideoId) {
+    readyBtn.disabled = true;
+    readyBtn.textContent = "Väntar på YouTube-länk...";
+    statusEl.textContent = "Ansluten. Väntar på att YouTube-länken ska laddas.";
+    return;
+  }
+
+  if (!youtubeApiReady || !playerReady) {
+    readyBtn.disabled = true;
+    readyBtn.textContent = "Laddar spelare...";
+    statusEl.textContent = "Ansluten. Laddar YouTube-spelaren...";
+    return;
+  }
+
+  readyBtn.disabled = false;
+  readyBtn.textContent = "🔊 Jag är redo";
+  statusEl.textContent = "Ansluten. Tryck 'Jag är redo'.";
 }
 
 function getYouTubeId(url) {
@@ -69,7 +95,9 @@ function setYoutubeUrl(url) {
   youtubeLiveUrl = url || "";
   youtubeVideoId = getYouTubeId(youtubeLiveUrl);
   youtubeLinkBig.href = youtubeLiveUrl || "#";
+  playerReady = false;
   if (youtubeApiReady && youtubeVideoId) createOrLoadPlayer();
+  updateReadyButtonState();
   debug({ youtubeUrlUpdated: true });
 }
 
@@ -77,6 +105,7 @@ function markYouTubeApiReady() {
   if (youtubeApiReady) return;
   youtubeApiReady = true;
   if (youtubeVideoId) createOrLoadPlayer();
+  updateReadyButtonState();
   debug({ youtubeApiReady: true });
 }
 
@@ -90,8 +119,6 @@ const youtubeApiCheck = setInterval(() => {
 }, 100);
 
 async function playReadySound() {
-  // Tydligare pling än tidigare. Om soundOk=true men inget hörs är det sannolikt
-  // telefonens tyst läge/volym som stoppar ljudet, inte JavaScript-fel.
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return false;
 
@@ -124,8 +151,6 @@ async function playReadySound() {
 }
 
 function primeYouTubePlayer() {
-  // Försöker väcka YouTube-spelaren direkt från knapptrycket.
-  // Viktigt: denna funktion körs före await i readyBtn-listenern.
   if (!youtubeVideoId) return;
   if (!player && youtubeApiReady) createOrLoadPlayer();
 
@@ -135,7 +160,7 @@ function primeYouTubePlayer() {
   }
 
   try {
-    if (typeof player.mute === "function") player.mute();
+    player.mute?.();
     player.playVideo();
 
     setTimeout(() => {
@@ -156,6 +181,7 @@ function createOrLoadPlayer() {
   if (!youtubeVideoId || !window.YT || !window.YT.Player) return;
 
   if (player && typeof player.loadVideoById === "function") {
+    playerReady = false;
     player.loadVideoById(youtubeVideoId);
     return;
   }
@@ -172,8 +198,15 @@ function createOrLoadPlayer() {
       rel: 0
     },
     events: {
-      onReady: () => debug({ playerEvent: "ready" }),
-      onStateChange: (event) => debug({ playerState: event.data }),
+      onReady: () => {
+        playerReady = true;
+        updateReadyButtonState();
+        debug({ playerEvent: "ready" });
+      },
+      onStateChange: (event) => {
+        lastPlayerState = event.data;
+        debug({ playerState: event.data });
+      },
       onError: (event) => {
         statusEl.textContent = "YouTube-spelaren gav ett fel. Använd 'Öppna i YouTube'.";
         debug({ playerError: event.data });
@@ -182,9 +215,20 @@ function createOrLoadPlayer() {
   });
 }
 
+function stopPlayer() {
+  stopLiveEdgeMonitor();
+
+  if (player) {
+    try { player.stopVideo?.(); } catch {}
+    try { player.pauseVideo?.(); } catch {}
+  }
+
+  hasTriedStart = false;
+}
+
 onValue(offsetRef, (snap) => {
   serverOffsetMs = snap.val() || 0;
-  if (!isReady) statusEl.textContent = "Ansluten. Tryck 'Jag är redo'.";
+  updateReadyButtonState();
   debug();
 });
 
@@ -201,7 +245,7 @@ onDisconnect(clientRef).remove();
 
 readyBtn.addEventListener("click", async () => {
   readyBtn.disabled = true;
-  statusEl.textContent = "Testar ljud och förbereder spelaren...";
+  statusEl.textContent = "Förbereder spelaren...";
 
   // Kör detta direkt från klicket, före await, för maximal chans att webbläsaren accepterar media.
   primeYouTubePlayer();
@@ -216,9 +260,7 @@ readyBtn.addEventListener("click", async () => {
     mediaUnlocked: soundOk
   });
 
-  statusEl.textContent = soundOk
-    ? "Du är redo. Vänta här tills filmen börjar."
-    : "Du är redo. Om inget ljud hördes, kontrollera volymen.";
+  statusEl.textContent = "Du är redo. Vänta här tills filmen börjar.";
 
   debug({ readyClicked: true, soundOk });
   if (startAt) runCountdown();
@@ -228,12 +270,13 @@ resetBtn.addEventListener("click", async () => {
   isReady = false;
   mediaUnlocked = false;
   readyBtn.disabled = false;
+  stopPlayer();
   livePanel.classList.add("hidden");
   countdownEl.textContent = "";
-  stopLiveEdgeMonitor();
   statusEl.textContent = "Redo ångrat. Tryck igen när du är redo.";
   await update(clientRef, { ready: false });
-  debug();
+  updateReadyButtonState();
+  debug({ localReset: true });
 });
 
 youtubeLinkBig.addEventListener("click", (event) => {
@@ -243,7 +286,7 @@ youtubeLinkBig.addEventListener("click", (event) => {
   }
 });
 
-playEmbeddedBtn.addEventListener("click", () => playEmbedded());
+playEmbeddedBtn.addEventListener("click", () => playEmbedded(false));
 jumpLiveBtn.addEventListener("click", () => jumpToLiveEdge());
 
 onValue(startRef, (snap) => {
@@ -251,12 +294,11 @@ onValue(startRef, (snap) => {
 
   if (!startAt) {
     clearTimeout(timer);
-    stopLiveEdgeMonitor();
     countdownEl.textContent = "";
     livePanel.classList.add("hidden");
-    hasTriedStart = false;
+    stopPlayer();
     if (isReady) statusEl.textContent = "Redo. Väntar på start.";
-    debug();
+    debug({ startCleared: true });
     return;
   }
 
@@ -276,13 +318,14 @@ onValue(resetRef, async (snap) => {
     lastResetCounter = value;
     isReady = false;
     mediaUnlocked = false;
-    hasTriedStart = false;
     readyBtn.disabled = false;
-    livePanel.classList.add("hidden");
+    clearTimeout(timer);
     countdownEl.textContent = "";
-    stopLiveEdgeMonitor();
+    livePanel.classList.add("hidden");
+    stopPlayer();
     statusEl.textContent = "Sessionen nollställd. Tryck 'Jag är redo'.";
     await update(clientRef, { ready: false });
+    updateReadyButtonState();
     debug({ reset: true });
   }
 });
@@ -294,7 +337,7 @@ function runCountdown() {
     const remainingMs = startAt - serverNow();
 
     if (remainingMs > 0) {
-      countdownEl.textContent = `Filmen börjar om ${Math.ceil(remainingMs / 1000)} s`;
+      countdownEl.textContent = `Spelaren öppnas om ${Math.ceil(remainingMs / 1000)} s`;
       timer = setTimeout(tick, 100);
       return;
     }
@@ -307,46 +350,44 @@ function runCountdown() {
       return;
     }
 
-    statusEl.textContent = "Startar YouTube-spelaren...";
+    statusEl.textContent = "Startar spelaren. Tryck ▶ Starta filmen om den inte går igång direkt.";
     debug({ live: true });
 
     if (!hasTriedStart) {
       hasTriedStart = true;
-      setTimeout(() => {
-        playEmbedded();
 
-        // Viktigt för mindre buffring:
-        // Vi startar INTE automatisk live-edge-monitor här.
-        // Tidigare seekTo var tredje sekund kan kasta YouTubes buffert och orsaka hack.
-        // Användaren kan fortfarande trycka "Hoppa till live" manuellt vid behov.
-        // startLiveEdgeMonitor();
-      }, 500);
+      // Försök automatiskt, men gör inte systemet beroende av autoplay.
+      setTimeout(() => playEmbedded(true), 100);
+      setTimeout(() => playEmbedded(true), 2500);
+      setTimeout(() => playEmbedded(true), 6000);
+
+      // Snäll catch-up långt efter start. Den ska inte störa YouTubes buffert i början.
+      setTimeout(startLiveEdgeMonitor, 25000);
     }
   };
 
   tick();
 }
 
-function playEmbedded() {
+function playEmbedded(isAutoAttempt = false) {
   if (!player || typeof player.playVideo !== "function") {
-    statusEl.textContent = "Spelaren är inte redo ännu. Använd 'Öppna i YouTube'.";
-    debug({ playError: "player not ready" });
+    statusEl.textContent = "Spelaren är inte redo ännu. Tryck igen eller använd 'Öppna i YouTube'.";
+    debug({ playError: "player not ready", isAutoAttempt });
     return;
   }
 
   try {
+    player.unMute?.();
     player.playVideo();
 
-    // Viktigt för mindre buffring:
-    // Vi hoppar inte automatiskt till live-kanten direkt efter start.
-    // YouTube får själv välja en stabil buffertposition.
-    // setTimeout(jumpToLiveEdge, 800);
+    statusEl.textContent = isAutoAttempt
+      ? "Försöker starta automatiskt. Om inget händer: tryck ▶ Starta filmen."
+      : "Spelar YouTube Live.";
 
-    statusEl.textContent = "Spelar YouTube Live.";
-    debug({ playCalled: true });
+    debug({ playCalled: true, isAutoAttempt });
   } catch (err) {
-    statusEl.textContent = "Kunde inte starta inbäddad spelare. Använd 'Öppna i YouTube'.";
-    debug({ playError: String(err) });
+    statusEl.textContent = "Kunde inte starta automatiskt. Tryck ▶ Starta filmen.";
+    debug({ playError: String(err), isAutoAttempt });
   }
 }
 
@@ -358,7 +399,8 @@ function jumpToLiveEdge() {
     const current = player.getCurrentTime?.();
 
     if (Number.isFinite(duration) && duration > 0) {
-      player.seekTo(Math.max(0, duration - 0.5), true);
+      player.seekTo(Math.max(0, duration - 1.0), true);
+      statusEl.textContent = "Hoppade närmare live. Om det hackar, låt spelaren buffra några sekunder.";
       debug({ jumpToLive: true, duration, current });
     } else {
       debug({ jumpToLive: false, reason: "no duration" });
@@ -380,16 +422,16 @@ function startLiveEdgeMonitor() {
       if (Number.isFinite(duration) && Number.isFinite(current) && duration > 0) {
         const behind = duration - current;
 
-        // Mycket snällare än tidigare: bara korrigera om tittaren ligger långt efter.
-        if (behind > 10) {
-          player.seekTo(Math.max(0, duration - 1.0), true);
+        // Väldigt försiktig korrigering: bara om tittaren ligger långt efter.
+        if (behind > 18) {
+          player.seekTo(Math.max(0, duration - 2.0), true);
           debug({ autoCatchup: true, behind });
         }
       }
     } catch (err) {
       debug({ liveEdgeMonitorError: String(err) });
     }
-  }, 20000);
+  }, 30000);
 }
 
 function stopLiveEdgeMonitor() {

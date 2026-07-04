@@ -10,6 +10,7 @@
   <main class="card">
     <h1>Admin</h1>
     <p class="lead">Samla gästerna här. Själva filmen spelas via YouTube Live.</p>
+
     <section class="stats">
       <div><strong id="connectedCount">0</strong><span>anslutna</span></div>
       <div><strong id="readyCount">0</strong><span>redo</span></div>
@@ -25,13 +26,20 @@
       <button id="saveYoutubeUrlBtn" class="secondary">Spara YouTube-länk</button>
       <p id="youtubeUrlStatus" class="small">Ingen länk sparad ännu.</p>
     </section>
-    <label>Nedräkning: <input id="delay" type="number" value="5" min="3" max="30"> sekunder</label>
-    <div class="controls">
-      <button id="startBtn">NU BÖRJAR FILMEN</button>
-      <button id="clearStartBtn" class="secondary">Avbryt nedräkning</button>
-      <button id="resetBtn" class="secondary danger">Nollställ session</button>
-    </div>
+
+    <section class="panel">
+      <h2>Start</h2>
+      <p class="small">När du trycker start får gästerna först tid att öppna/starta spelaren. FFmpeg-scriptet väntar därefter några sekunder extra innan filmen faktiskt byts in i YouTube-strömmen.</p>
+      <label>Gästförberedelse: <input id="delay" type="number" value="15" min="10" max="60"> sekunder</label>
+      <div class="controls">
+        <button id="startBtn">FÖRBERED OCH STARTA FILMEN</button>
+        <button id="clearStartBtn" class="secondary">Avbryt start</button>
+        <button id="resetBtn" class="secondary danger">Nollställ session</button>
+      </div>
+    </section>
+
     <p id="status">Startar admin...</p>
+
     <section class="qr-section">
       <h2>Gästlänk</h2>
       <div id="qrcode"></div>
