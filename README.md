@@ -1,6 +1,6 @@
 # Wedding YouTube Live Control
 
-Förenklad hybridversion.
+Förenklad hybridversion. igen.
 
 Webbappen spelar inte video. Den används bara för QR-kod, gästernas "Jag är redo", adminräkning och gemensam nedräkning.
 
