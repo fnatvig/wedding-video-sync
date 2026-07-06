@@ -381,9 +381,6 @@ function startPlayerAttemptsDuringCountdown() {
   tryPlay();
 }
 
-  waitUntilCloseToStart();
-}
-
 function playEmbedded(userVisible) {
   if (!youtubeLiveUrl || !youtubeVideoId) {
     statusEl.textContent = "YouTube-länk saknas ännu.";
