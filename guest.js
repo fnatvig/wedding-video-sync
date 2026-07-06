@@ -329,7 +329,7 @@ function runCountdownAndPrebuffer() {
   rescueControls.classList.add("hidden");
   readyPanel.classList.add("hidden");
 
-  // Starta spelaren direkt under nedräkningen så YouTube hinner ladda svart standby.
+  // Starta spelaren direkt under nedräkningen så YouTube hinner ladda svart standby..
   startPlayerAttemptsDuringCountdown();
 
   const tick = () => {
