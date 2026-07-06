@@ -347,6 +347,10 @@ function runCountdownAndPrebuffer() {
     countdownOverlay.classList.add("hidden");
     statusEl.textContent = "Filmen startar nu.";
 
+    setTimeout(() => {
+      jumpToLiveEdge();
+    }, 500);
+
     movieStartedAt = Date.now();
 
     // Snäll auto-catchup. Väntar 15 sek innan första möjliga korrigering.
