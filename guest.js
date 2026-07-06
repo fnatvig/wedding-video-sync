@@ -364,39 +364,18 @@ function runCountdownAndPrebuffer() {
 
 function startPlayerAttemptsDuringCountdown() {
   if (hasStartedForThisCommand) return;
+  hasStartedForThisCommand = true;
 
-  const waitUntilCloseToStart = () => {
-    const remainingMs = startAt - serverNow();
+  const tryPlay = (attempt = 1) => {
+    playEmbedded(false);
 
-    // Börja försöka starta spelaren först när det är 9 sekunder kvar.
-    if (remainingMs > 7000) {
-      setTimeout(waitUntilCloseToStart, 250);
-      return;
+    if (attempt < 8 && startAt && serverNow() < startAt) {
+      setTimeout(() => tryPlay(attempt + 1), 1000);
     }
-
-    hasStartedForThisCommand = true;
-
-    const tryPlay = () => {
-      if (!startAt || serverNow() >= startAt) return;
-
-      try {
-        const state = player?.getPlayerState?.();
-
-        // 1 = playing. Om den redan spelar behöver vi inte störa den.
-        if (state !== 1) {
-          playEmbedded(false);
-        }
-
-        debug({ startAttempt: true, playerState: state });
-      } catch {
-        playEmbedded(false);
-      }
-
-      setTimeout(tryPlay, 500);
-    };
-
-    tryPlay();
   };
+
+  tryPlay();
+}
 
   waitUntilCloseToStart();
 }
