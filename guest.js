@@ -370,8 +370,8 @@ function startPlayerAttemptsDuringCountdown() {
   const tryPlay = (attempt = 1) => {
     playEmbedded(false);
 
-    if (attempt < 5 && startAt && serverNow() < startAt) {
-      setTimeout(() => tryPlay(attempt + 1), 1500);
+    if (attempt < 8 && startAt && serverNow() < startAt) {
+      setTimeout(() => tryPlay(attempt + 1), 1000);
     }
   };
 
