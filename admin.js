@@ -3,20 +3,22 @@ import { getDatabase, ref, set, update, remove, onValue, serverTimestamp, increm
 import { firebaseConfig, SESSION_ID } from "./firebase-config.js";
 
 // ===== Admin-lösenord =====
-const ADMIN_PASSWORD = "ditt_hemliga_lösenord";
+const ADMIN_PASSWORD = "calle2026";
 
 const authenticated = sessionStorage.getItem("adminAuthenticated");
 
 if (authenticated !== ADMIN_PASSWORD) {
-    const entered = prompt("Lösenord:");
+  const entered = prompt("Lösenord:");
 
-    if (entered !== ADMIN_PASSWORD) {
-        document.body.innerHTML = "<h1>Åtkomst nekad</h1>";
-        throw new Error("Wrong password");
-    }
+  if (entered !== ADMIN_PASSWORD) {
+    document.body.innerHTML = "<main class='card'><h1>Åtkomst nekad</h1></main>";
+    throw new Error("Wrong password");
+  }
 
-    sessionStorage.setItem("adminAuthenticated", ADMIN_PASSWORD);
+  sessionStorage.setItem("adminAuthenticated", ADMIN_PASSWORD);
 }
+
+document.getElementById("adminApp").classList.remove("hidden");
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
