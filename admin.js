@@ -5,24 +5,16 @@ import { firebaseConfig, SESSION_ID } from "./firebase-config.js";
 // ===== Admin-lösenord =====
 const ADMIN_PASSWORD = "calle2026";
 
-const authenticated = sessionStorage.getItem("adminAuthenticated");
-
-if (authenticated !== ADMIN_PASSWORD) {
-
-    const entered = prompt("Lösenord:");
+if (sessionStorage.getItem("adminAuthenticated") !== "true") {
+    const entered = window.prompt("Lösenord:");
 
     if (entered !== ADMIN_PASSWORD) {
-        document.body.innerHTML = "<h1>Åtkomst nekad</h1>";
+        alert("Fel lösenord.");
         throw new Error("Wrong password");
     }
 
-    sessionStorage.setItem("adminAuthenticated", ADMIN_PASSWORD);
+    sessionStorage.setItem("adminAuthenticated", "true");
 }
-
-document.getElementById("adminApp").style.display = "";
-
-// Först nu:
-const app = initializeApp(firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
