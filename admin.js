@@ -2,6 +2,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/fireba
 import { getDatabase, ref, set, update, remove, onValue, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 import { firebaseConfig, SESSION_ID } from "./firebase-config.js";
 
+// ===== Admin-lösenord =====
+const ADMIN_PASSWORD = "ditt_hemliga_lösenord";
+
+const authenticated = sessionStorage.getItem("adminAuthenticated");
+
+if (authenticated !== ADMIN_PASSWORD) {
+    const entered = prompt("Lösenord:");
+
+    if (entered !== ADMIN_PASSWORD) {
+        document.body.innerHTML = "<h1>Åtkomst nekad</h1>";
+        throw new Error("Wrong password");
+    }
+
+    sessionStorage.setItem("adminAuthenticated", ADMIN_PASSWORD);
+}
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
