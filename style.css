@@ -49,5 +49,26 @@ pre { background: rgba(255,255,255,0.15); padding: 12px; border-radius: 5px; ove
   background: rgba(0,0,0,0.62);
   z-index: 2;
 }
+.video-wrap.ios-fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  aspect-ratio: auto;
+  margin: 0;
+  border-radius: 0;
+  background: black;
+  z-index: 9999;
+}
+
+.video-wrap.ios-fullscreen #player {
+  width: 100%;
+  height: 100%;
+}
+
+body.ios-fullscreen-active {
+  overflow: hidden;
+}
 .rescue { margin-top: 10px; }
 @media (max-width: 720px) { .stats { grid-template-columns: 1fr; } }

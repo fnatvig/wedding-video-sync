@@ -272,23 +272,35 @@ playEmbeddedBtn.addEventListener("click", () => {
 });
 
 fullscreenBtn.addEventListener("click", async () => {
-
   const wrapper = document.querySelector(".video-wrap");
 
   if (!wrapper) return;
 
   try {
-
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    } else {
-      await wrapper.requestFullscreen();
+    // Riktig helskärm där webbläsaren stöder det.
+    if (document.fullscreenEnabled && wrapper.requestFullscreen) {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await wrapper.requestFullscreen();
+      }
+      return;
     }
 
+    // Fallback för iPhone.
+    wrapper.classList.toggle("ios-fullscreen");
+
+    const isFullscreen = wrapper.classList.contains("ios-fullscreen");
+    document.body.classList.toggle("ios-fullscreen-active", isFullscreen);
+
+    fullscreenBtn.textContent = isFullscreen
+      ? "✕ Avsluta helskärm"
+      : "⛶ Helskärm";
+
+    debug({ iosFullscreen: isFullscreen });
   } catch (err) {
     debug({ fullscreenError: String(err) });
   }
-
 });
 
 onValue(startRef, (snap) => {
