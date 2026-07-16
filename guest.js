@@ -273,31 +273,36 @@ playEmbeddedBtn.addEventListener("click", () => {
 
 fullscreenBtn.addEventListener("click", async () => {
   const wrapper = document.querySelector(".video-wrap");
-
   if (!wrapper) return;
 
+  const isIPhone =
+    /iPhone|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
   try {
-    // Riktig helskärm där webbläsaren stöder det.
-    if (document.fullscreenEnabled && wrapper.requestFullscreen) {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await wrapper.requestFullscreen();
-      }
+    // På iPhone: använd alltid CSS-baserad helskärm.
+    if (isIPhone) {
+      const isActive = wrapper.classList.toggle("ios-fullscreen");
+
+      document.body.classList.toggle(
+        "ios-fullscreen-active",
+        isActive
+      );
+
+      fullscreenBtn.textContent = isActive
+        ? "✕ Avsluta helskärm"
+        : "⛶ Helskärm";
+
+      debug({ iosFullscreen: isActive });
       return;
     }
 
-    // Fallback för iPhone.
-    wrapper.classList.toggle("ios-fullscreen");
-
-    const isFullscreen = wrapper.classList.contains("ios-fullscreen");
-    document.body.classList.toggle("ios-fullscreen-active", isFullscreen);
-
-    fullscreenBtn.textContent = isFullscreen
-      ? "✕ Avsluta helskärm"
-      : "⛶ Helskärm";
-
-    debug({ iosFullscreen: isFullscreen });
+    // Dator/andra enheter: använd riktig Fullscreen API.
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else if (wrapper.requestFullscreen) {
+      await wrapper.requestFullscreen();
+    }
   } catch (err) {
     debug({ fullscreenError: String(err) });
   }
