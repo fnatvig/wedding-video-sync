@@ -16,7 +16,8 @@ const livePanel = document.getElementById("livePanel");
 const rescueControls = document.getElementById("rescueControls");
 const youtubeLinkBig = document.getElementById("youtubeLinkBig");
 const playEmbeddedBtn = document.getElementById("playEmbeddedBtn");
-const jumpLiveBtn = document.getElementById("jumpLiveBtn");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
 
 const clientId = crypto.randomUUID();
 const clientRef = ref(db, `sessions/${SESSION_ID}/clients/${clientId}`);
@@ -121,7 +122,9 @@ function createOrLoadPlayer() {
     videoId: youtubeVideoId,
     playerVars: {
       autoplay: 0,
-      controls: 1,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
       playsinline: 1,
       modestbranding: 1,
       rel: 0
@@ -268,8 +271,24 @@ playEmbeddedBtn.addEventListener("click", () => {
   playEmbedded(true);
 });
 
-jumpLiveBtn.addEventListener("click", () => {
-  jumpToLiveEdge();
+fullscreenBtn.addEventListener("click", async () => {
+
+  const wrapper = document.querySelector(".video-wrap");
+
+  if (!wrapper) return;
+
+  try {
+
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await wrapper.requestFullscreen();
+    }
+
+  } catch (err) {
+    debug({ fullscreenError: String(err) });
+  }
+
 });
 
 onValue(startRef, (snap) => {

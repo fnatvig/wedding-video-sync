@@ -5,6 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bröllopsfilm</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .video-wrap {
+      position: relative;
+    }
+
+    .player-click-blocker {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      background: transparent;
+      cursor: default;
+      touch-action: none;
+    }
+
+    .countdown-overlay {
+      z-index: 10;
+    }
+  </style>
 </head>
 <body>
   <main class="card">
@@ -21,6 +39,10 @@
     <section id="livePanel" class="panel hidden">
       <div class="video-wrap">
         <div id="player"></div>
+
+        <!-- Hindrar gästen från att pausa, spola eller klicka på YouTube-spelaren. -->
+        <div class="player-click-blocker" aria-hidden="true"></div>
+
         <div id="countdownOverlay" class="countdown-overlay hidden">
           <div id="countdown">15</div>
           <div class="small">Filmen börjar strax</div>
@@ -28,10 +50,12 @@
       </div>
 
       <div id="rescueControls" class="controls rescue hidden">
-        <p class="small">Om filmen inte startar eller hamnar efter:</p>
+        <p class="small">Om filmen inte startar:</p>
         <button id="playEmbeddedBtn">▶ Starta filmen</button>
-        <button id="jumpLiveBtn" class="secondary">Hoppa till live</button>
-        <a id="youtubeLinkBig" class="buttonlike secondary" target="_blank" rel="noopener">Öppna i YouTube</a>
+        <button id="fullscreenBtn" class="secondary">⛶ Helskärm</button>
+        <a id="youtubeLinkBig" class="buttonlike secondary" target="_blank" rel="noopener">
+          Öppna i YouTube
+        </a>
       </div>
     </section>
 
